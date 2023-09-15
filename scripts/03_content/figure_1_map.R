@@ -33,7 +33,7 @@ centroids <- turfs %>%
   select(eu_rnpa) %>%
   distinct() %>%
   st_centroid() %>%
-  left_join(schok, by = "eu_rnpa") %>%
+  left_join(shock, by = "eu_rnpa") %>%
   drop_na()
 
 ## VISUALIZE ###################################################################

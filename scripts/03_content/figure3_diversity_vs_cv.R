@@ -20,20 +20,6 @@ pacman::p_load(
   tidyverse
 )
 
-
-update_geom_defaults(geom = "point",
-                     new = list(shape = 21,
-                                color = "black",
-                                fill = "navyblue",
-                                alpha = 0.8,
-                                size = 3))
-
-update_geom_defaults(geom = "smooth",
-                     new = list(linetype = "dashed",
-                                color = "black"))
-theme_set(theme_bw())
-theme_update(legend.background = element_blank())
-
 # Load data --------------------------------------------------------------------
 shock <- readRDS(file = here("data", "processed", "cv_and_shocks.rds"))
 
@@ -42,7 +28,6 @@ shock <- readRDS(file = here("data", "processed", "cv_and_shocks.rds"))
 # X ----------------------------------------------------------------------------
 s_vs_cv <- shock %>%
   ggplot(mapping = aes(x = n_spp, y = cv_revenue)) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
   geom_smooth(method = "lm") +
   geom_point(size = 2) +
   labs(x = "# Spp",
@@ -53,19 +38,18 @@ s_vs_cv <- shock %>%
 
 S_vs_cv <- shock %>%
   ggplot(mapping = aes(x = 1 - simpson, y = cv_revenue)) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
   geom_smooth(method = "lm") +
   geom_point(size = 2) +
   labs(x = "1 - Simpson",
        y = "CV")
 
-p2 <- plot_grid(s_vs_cv, S_vs_cv)
+p2 <- plot_grid(s_vs_cv, S_vs_cv, ncol = 1)
 
 
-ggsave(plot = p2,
-       filename = here("results", "img", "figure3_diversity_vs_cv.png"),
-       width = 6,
-       height = 3)
+startR::lazy_ggsave(plot = p2,
+                    filename = "figure3_diversity_vs_cv.png",
+                    width = 9,
+                    height = 18)
 
 ## EXPORT ######################################################################
 

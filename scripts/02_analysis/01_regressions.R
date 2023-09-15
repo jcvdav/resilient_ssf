@@ -21,12 +21,12 @@ pacman::p_load(
 )
 
 fit_c19 <- function(data) {
-  lm(c19_shock_r ~ cv_revenue, weights = n, data = data) %>%
+  lm(c19_shock ~ cv_revenue, weights = n, data = data) %>%
     broom::tidy()
 }
 
 fit_mhw <- function(data) {
-  lm(mhw_shock_r ~ cv_revenue, weights = n, data = data) %>%
+  lm(mhw_shock ~ cv_revenue, weights = n, data = data) %>%
     broom::tidy()
 }
 
@@ -55,7 +55,7 @@ bootstraped_mhw <- shock %>%
 
 terms <- bind_rows(bootstraped_c19, bootstraped_mhw)
 
-lm(mhw_shock_r ~ cv_revenue, weights = n, data = shock) %>% summary()
+lm(mhw_shock ~ cv_revenue, weights = n, data = shock) %>% summary()
 
 ## EXPORT ######################################################################
 
