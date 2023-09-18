@@ -21,18 +21,18 @@ pacman::p_load(
 )
 
 fit_c19 <- function(data) {
-  lm(c19_shock ~ cv_revenue, weights = n, data = data) %>%
+  lm(c19_shock ~ cv_rev + inv_simp, data = data) %>%
     broom::tidy()
 }
 
 fit_mhw <- function(data) {
-  lm(mhw_shock ~ cv_revenue, weights = n, data = data) %>%
+  lm(mhw_shock ~ cv_revenue, data = data) %>%
     broom::tidy()
 }
 
 # Load data --------------------------------------------------------------------
 
-shock <- readRDS(file = here("data", "processed", "cv_and_shocks.rds"))
+# shock <- readRDS(file = here("data", "processed", "cv_and_shocks.rds"))
 
 ## PROCESSING ##################################################################
 

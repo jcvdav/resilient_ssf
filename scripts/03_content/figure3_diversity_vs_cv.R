@@ -21,13 +21,13 @@ pacman::p_load(
 )
 
 # Load data --------------------------------------------------------------------
-shock <- readRDS(file = here("data", "processed", "cv_and_shocks.rds"))
+# shock <- readRDS(file = here("data", "processed", "cv_and_shocks.rds"))
 
 ## VISUALIZE ###################################################################
 
 # X ----------------------------------------------------------------------------
 s_vs_cv <- shock %>%
-  ggplot(mapping = aes(x = n_spp, y = cv_revenue)) +
+  ggplot(mapping = aes(x = n_spp, y = cv_rev)) +
   geom_smooth(method = "lm") +
   geom_point(size = 2) +
   labs(x = "# Spp",
@@ -37,7 +37,7 @@ s_vs_cv <- shock %>%
                                title = "# Spp"))
 
 S_vs_cv <- shock %>%
-  ggplot(mapping = aes(x = 1 - simpson, y = cv_revenue)) +
+  ggplot(mapping = aes(x = 1 - simpson, y = cv_rev)) +
   geom_smooth(method = "lm") +
   geom_point(size = 2) +
   labs(x = "1 - Simpson",
