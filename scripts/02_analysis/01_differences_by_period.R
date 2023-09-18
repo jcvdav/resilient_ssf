@@ -25,7 +25,7 @@ period_difs <- fixest::feols(std_rev ~ period | eu_rnpa,
               data = yr_eu) %>%
   broom::tidy() %>%
   mutate(term = str_remove(term, "period"),
-         term = fct_relevel(term, c("Baseline", "MHW", "C19")))
+         term = fct_relevel(term, c("MHW", "C19")))
 
 ## VISUALIZE ###################################################################
 
