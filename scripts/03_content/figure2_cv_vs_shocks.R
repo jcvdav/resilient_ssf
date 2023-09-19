@@ -21,6 +21,9 @@ pacman::p_load(
 
 
 # Load data --------------------------------------------------------------------
+yr_eu <- readRDS(here("data", "processed", "year_eu.rds"))
+characteristics <- readRDS(file = here("data", "processed", "characteristics.rds"))
+period_difs <- readRDS(here("data", "output", "period_diffs.rds"))
 
 ## PROCESSING ##################################################################
 
@@ -29,6 +32,7 @@ model <- fixest::feols(std_rev ~ 0 + period:eu_rnpa,
                        panel.id = ~eu_rnpa + year,
                        vcov = "NW",
                        data = yr_eu)
+
 shock <- model %>%
   broom::tidy() %>%
   mutate(eu_rnpa = str_extract(term, "[:digit:]{10}"),
@@ -51,39 +55,44 @@ shock <- model %>%
          mhw_sign,
          group)
 
+shock %>%
+  count(group) %>%
+  mutate(n = (n / sum(n)) * 100)
+
 ## VISUALIZE ###################################################################
-
-
-
 p1 <- shock %>%
   ggplot(mapping = aes(x = c19_shock, y = mhw_shock)) +
-  geom_hline(yintercept = 0,
-             linetype = "dashed") +
-  geom_vline(xintercept = 0,
-             linetype = "dashed") +
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = period_difs$estimate[2],
+             color = period_palette["C19"],
+             linetype = "dotted") +
+  geom_hline(yintercept = period_difs$estimate[1],
+             color = period_palette["MHW"],
+             linetype = "dotted") +
   geom_density2d(color = "black",
                  bins = 5) +
   geom_point(aes(fill = inv_simp),
              size = 1.5) +
   scale_fill_binned(type = "viridis") +
-  labs(x = "MHW shock",
-       y = "C19 shock",
+  labs(x = "C19 shock",
+       y = "MHW shock",
        fill = "1-Simpson") +
   theme(legend.position = c(1, 0),
         legend.justification = c(1, 0), legend.direction = "horizontal") +
   guides(fill = guide_colorsteps(title.position = "top",
-                                  barwidth = 5,
-                                  barheight = 1)) +
-  coord_equal()
+                                 barwidth = 5,
+                                 barheight = 1,
+                                 ticks = T,
+                                 show.limits = T,
+                                 frame.colour = "black",
+                                 ticks.colour = "black")) +
+  coord_equal() +
+  annotate(geom = "text",
+           x = c(-3, 3, 1, -3),
+           y = c(2, 2, -2, -2),
+           label = c("21.1%", "15.8%", "21.8%", "41.4%"))
 
-p2 <- shock %>%
-  count(group) %>%
-  mutate(n = n / sum(n)) %>%
-  ggplot(aes(x = group, y = n)) +
-  geom_col(color = "black") +
-  scale_y_continuous(labels = scales::percent,
-                     expand = expansion(c(0, 0.01), 0)) +
-  coord_flip()
 
 p3 <- shock %>%
   mutate(bin = case_when(between(inv_simp, 0, 1/3) ~ "Low",
@@ -102,8 +111,6 @@ p3 <- shock %>%
                  linewidth = 0.1) +
   scale_fill_binned(type = "viridis") +
   scale_color_binned(type = "viridis") +
-  # labs(x = "MHW shock",
-  #      y = "C19 shock") +
   theme(legend.position = "None",
         axis.title = element_blank()) +
   guides(fill = guide_colorbar(frame.colour = "black",
@@ -117,14 +124,6 @@ p13 <- plot_grid(p1, p3,
                  align = "h",
                  rel_widths = c(3.5, 1),
                  axis = "b")
-
-p <- plot_grid(p13,
-               p2,
-               ncol = 1,
-               labels = c("A", "B"),
-               rel_heights = c(2.5, 1),
-               align = "hv",
-               axis = "l")
 
 startR::lazy_ggsave(plot = p13,
                     filename = "figure2_cv_vs_shocks.png",

@@ -13,8 +13,15 @@
 ## SET UP ######################################################################
 
 # Load packages ----------------------------------------------------------------
+pacman::p_load(
+  here,
+  fixest,
+  cowplot,
+  tidyverse
+)
 
 # Load data --------------------------------------------------------------------
+yr_eu <- readRDS(here("data/processed/year_eu.rds"))
 
 ## PROCESSING ##################################################################
 
@@ -69,13 +76,14 @@ plot <- plot_grid(ts_plot, period_plot,
                   labels = "AUTO",
                   align = "hv")
 
-plot
-
-
 ## EXPORT ######################################################################
 startR::lazy_ggsave(
   plot = plot,
   filename = "ts_plot",
   width = 18,
-  height = 6
+  height = 9
 )
+
+
+saveRDS(object = period_difs,
+        file = here("data", "output", "period_diffs.rds"))

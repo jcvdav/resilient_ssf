@@ -31,9 +31,9 @@ ggplot2::update_geom_defaults(geom = "line",
                                          linewidth = 1))
 
 ggplot2::update_geom_defaults(geom = "abline",
-                              linetype = "dotted",
                               new = list(color = "black",
-                                         linewidth = 1))
+                                         linewidth = 1,
+                                         linetype = "dotted"))
 
 ggplot2::update_geom_defaults(geom = "hline",
                               new = list(color = "black",
@@ -109,3 +109,12 @@ clean_eu_names <- function(x) {
   return(out)
 }
 
+
+fix_rnpa <- function(rnpa, length = 8){
+  rnpa[is.na(rnpa)] <- "_"
+  lengths <- stringr::str_length(rnpa)
+  missing <- pmax(length - lengths, 0)
+  zeroes <- purrr::map_chr(missing, ~paste(numeric(length = .x), collapse = ""))
+  out <- paste0(zeroes, rnpa)
+  return(out)
+}

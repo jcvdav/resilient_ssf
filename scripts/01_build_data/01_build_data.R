@@ -15,45 +15,19 @@
 # Load packages ----------------------------------------------------------------
 pacman::p_load(
   here,
+  modelsummary,
+  readxl,
+  janitor,
   tidyverse
 )
 
-coop_numbers <- readxl::read_excel("/Users/juancarlosvillasenorderbez/Downloads/CooperativePoints2022.xlsx") %>%
-  janitor::clean_names() %>%
-  filter(estado %in% c("BAJA CALIFORNIA", "BAJA CALIFORNIA SUR"),
-         municipio %in% c("SAN QUINTIN", "PLAYAS DE ROSARITO", "TIJUANA", "ENSENADA",
-                          "COMONDU", "MULEGE", "LA PAZ", "LOS CABOS"),
-         oficina %in% oficinas) %>%
-  drop_na(lat, long, emp_planta) %>%
-  select(eu_name = unidad_economica,
-         state = estado,
-         municipality = municipio,
-         location = localidad,
-         office = oficina,
-         memebrs = emp_planta,
-         interns = emp_eventual,
-         lat, long) %>%
-  distinct() %>%
-  mutate(eu_name = clean_eu_names(eu_name)) %>%
-  filter(!eu_name %in% c("X",
-                         "ACUICPESCADORES DE LA HERRADURA SC L",
-                         "ISLA DEL ANGEL",
-                         "PESQUERA DON JAVIER S L MI",
-                         "SC NATIVOS DEL DATIL SC L DE CV",
-                         "BUZOS ORILLEROS DEL MAR DE CORTEZ",
-                         "LA TRIESTE SC L DE CV",
-                         "BUZOS DE BAHIA",
-                         "GOLFO REALMAR",
-                         "MS FISHERIES SA DE CV",
-                         "PESCADORES HERMANOS FUERTE",
-                         "SARDINEROS BAJACALIFORNIANOS SCL"
-                         ))
-
-pts <- coop_numbers %>% select(eu_name, lat, long) %>% distinct() %>% st_as_sf(coords = c("long", "lat"), crs = 4326)
-mapview(pts %>% mutate(a = 1), zcol = "a")
-
 # Define data ------------------------------------------------------------------
-oficinas <- c(
+states <- c("BAJA CALIFORNIA", "BAJA CALIFORNIA SUR")
+
+municipalities <- c("SAN QUINTIN", "PLAYAS DE ROSARITO", "TIJUANA", "ENSENADA",
+                  "COMONDU", "MULEGE", "LA PAZ", "LOS CABOS")
+
+offices <- c(
   "BAHIA ASUNCION", "BAHIA TORTUGAS",
   "CD. CONSTITUCION", "EL ROSARIO",
   "ENSENADA", "GUERRERO NEGRO",
@@ -63,9 +37,41 @@ oficinas <- c(
   "TIJUANA", "VILLA DE JESUS MARIA"
 )
 
-# Load data --------------------------------------------------------------------
+spp_remove <- c("BESUGO",
+                "BAGRE",
+                "LOBINA",
+                "RUBIA Y VILLAJAIBA",
+                "CARPA",
+                "LANGOSTINO",
+                "ANCHOVETA",
+                "ESMEDREGAL",
+                "OSTION",
+                "PECES DE ORNATO",
+                "BARRILETE",
+                "PETO")
+
+# Read data --------------------------------------------------------------------
 # CPI
 cpi <- readRDS(here("../ssf_shocks", "data", "processed", "cpi_t_rates.rds"))
+
+# Coop info
+coop_numbers <- read_excel(path = here("data", "raw", "Cooperativas- UnidadesEconomicas2020.xlsx"),
+                           sheet = "cooperativas") %>%
+  clean_names() %>%
+  filter(str_detect(tipo, "CAPTURA"),
+         estado %in% states,
+         municipio %in% municipalities,
+         oficina %in% offices) %>%
+  mutate(aquaculture = str_detect(tipo, "ACUACULTURA"),
+         wildcaught = str_detect(tipo, "CAPTURA")) %>%
+  select(eu_rnpa = rnpa,
+         aquaculture,
+         wildcaught,
+         full_time = emp_planta_number_of_members,
+         part_time = emp_eventual,
+         n_boats = activos_menores,
+         aquaculture_assets = activos_inst_acuicolas) %>%
+  distinct()
 
 # Landings data
 landings_raw <- readRDS(
@@ -83,8 +89,6 @@ landings_raw <- readRDS(
          live_weight > 0,
          value > 0)
 
-
-
 ## PROCESSING ##################################################################
 
 # counts to report filters
@@ -95,11 +99,9 @@ landings_raw %>%
   unique() %>%
   length()
 
-spp_remove <- c("BESUGO", "BAGRE", "LOBINA", "RUBIA Y VILLAJAIBA", "CARPA", "LANGOSTINO", "ANCHOVETA", "ESMEDREGAL", "OSTION", "PECES DE ORNATO", "BARRILETE", "PETO")
-
 # EUs that report in offices along the pacific coastline
 eus_reporting_in <- landings_raw %>%
-  filter(office_name %in% oficinas,
+  filter(office_name %in% offices,
          !main_species_group %in% spp_remove,
          fleet == "small_scale") %>%
   pull(eu_rnpa) %>%
@@ -107,7 +109,7 @@ eus_reporting_in <- landings_raw %>%
 
 # SSF eus that report in other offices in Baja
 eus_reporting_out <- landings_raw %>%
-  filter(!office_name %in% oficinas,
+  filter(!office_name %in% offices,
          !main_species_group %in% spp_remove,
          fleet == "small_scale") %>%
   pull(eu_rnpa) %>%
@@ -118,7 +120,7 @@ eus_only_in <- eus_reporting_in[!(eus_reporting_in %in% eus_reporting_out)]
 length(eus_only_in)
 
 eus_with_10 <- landings_raw %>%
-  filter(office_name %in% oficinas,
+  filter(office_name %in% offices,
          !main_species_group %in% spp_remove,
          eu_rnpa %in% eus_only_in,
          year >= 2005) %>%
@@ -140,7 +142,7 @@ eus_with_10 <- landings_raw %>%
 length(eus_with_10)
 
 eus_with_5_baseline <- landings_raw %>%
-  filter(office_name %in% oficinas,
+  filter(office_name %in% offices,
         !main_species_group %in% spp_remove,
         eu_rnpa %in% eus_only_in,
         year >= 2005,
@@ -158,7 +160,7 @@ length(eus_with_5_baseline)
 yr_eu_spp <- landings_raw %>%
   # Some filters are redundant, but good for consistency and guard rails
   filter(year >= 2005,
-         office_name %in% oficinas,
+         office_name %in% offices,
          eu_rnpa %in% eus_reporting_in,
          !eu_rnpa %in% eus_reporting_out,
          !main_species_group %in% spp_remove,
@@ -235,8 +237,6 @@ yr_eu <- yr_eu_spp %>%
     std_rev = (revenue - mean(revenue[period == "Baseline"], na.rm = T)) / sd(revenue[period == "Baseline"], na.rm = T),
     std_land = (landings - mean(landings[period == "Baseline"], na.rm = T)) / sd(landings[period == "Baseline"], na.rm = T))
 
-length(unique(yr_eu$eu_rnpa))
-
 # EU charcteristics ------------------------------------------------------------
 simpson <- yr_eu_spp %>%
   filter(year <= 2013) %>%
@@ -254,7 +254,6 @@ richness <- yr_eu_spp %>%
   ungroup()
 
 cv <- yr_eu %>%
-  filter(year <= 2013) %>%
   group_by(eu_rnpa) %>%
   summarize(
     mean_rev = mean(revenue ,na.rm = T),
@@ -266,12 +265,13 @@ cv <- yr_eu %>%
 
 characteristics <- cv %>%
   left_join(simpson, by = "eu_rnpa") %>%
-  left_join(richness, by = "eu_rnpa")
+  left_join(richness, by = "eu_rnpa") %>%
+  left_join(coop_numbers, by = "eu_rnpa")
 
 
 
 # Summary tables
-datasummary((`Species Group` = main_species_group) * ((`Revenue (USD[2019])` = revenue) + (`Landings (Kg)` = landings)) ~ mean + median + sd + max + min ,
+datasummary((`Species Group` = taxa) * ((`Revenue (USD[2019])` = revenue) + (`Landings (Kg)` = landings)) ~ mean + median + sd + max + min ,
             data = yr_eu_spp)
 
 datasummary((`Revenue (USD[2019])` = revenue) + (`Landings (Kg)` = landings) ~ mean + sd + median + max + min,
@@ -281,6 +281,10 @@ datasummary((`Revenue (USD[2019])` = revenue) + (`Landings (Kg)` = landings) ~ m
 
 
 ## EXPORT ######################################################################
-saveRDS(object = coefs,
-        file = here("data", "processed", "cv_and_shocks.rds"))
+saveRDS(object = yr_eu_spp,
+        file = here("data", "processed", "year_eu_spp.rds"))
+saveRDS(object = yr_eu,
+        file = here("data", "processed", "year_eu.rds"))
+saveRDS(object = characteristics,
+        file = here("data", "processed", "characteristics.rds"))
 

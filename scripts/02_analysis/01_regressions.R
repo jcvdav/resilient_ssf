@@ -55,7 +55,7 @@ bootstraped_mhw <- shock %>%
 
 terms <- bind_rows(bootstraped_c19, bootstraped_mhw)
 
-lm(mhw_shock ~ cv_revenue, weights = n, data = shock) %>% summary()
+lm(mhw_shock ~ inv_simp, data = shock) %>% summary()
 
 ## EXPORT ######################################################################
 
