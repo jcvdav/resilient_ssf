@@ -50,6 +50,14 @@ spp_remove <- c("BESUGO",
                 "BARRILETE",
                 "PETO")
 
+export_spp <- c("CAMARON",
+                "ATUN",
+                "LANGOSTA",
+                "ERIZO",
+                "PEPINO DE MAR",
+                "ABULON",
+                "PULPO")
+
 # Read data --------------------------------------------------------------------
 # CPI
 cpi <- readRDS(here("../ssf_shocks", "data", "processed", "cpi_t_rates.rds"))
@@ -211,22 +219,23 @@ yr_eu_spp <- landings_raw %>%
     main_species_group == "SIERRA" ~ "Scombridae",
     main_species_group == "TIBURON" ~ "Sharks"
   ),
+  market = ifelse(main_species_group %in% export_spp, "Export", "Local"),
   period = case_when(year %in% c(2014:2016) ~ "MHW",
                      year %in% c(2020, 2021) ~ "C19",
                             T ~ "Baseline"),
          period = fct_relevel(period, c("Baseline", "MHW", "C19"))
   ) %>%
-  group_by(year, period, eu_rnpa, eu_name, taxa) %>%
+  group_by(year, period, eu_rnpa, eu_name, market, taxa) %>%
   summarize(revenue = sum(value, na.rm = T),
             landings = sum(live_weight, na.rm = T)) %>%
   ungroup() %>%
   left_join(cpi, by = "year") %>%
-  mutate(revenue = revenue * rate * 0.052) %>%
+  mutate(revenue = revenue * rate * 0.052) %>% # Mean value of 1 MEX to USD during 2019
   select(-rate)
 
 length(unique(yr_eu_spp$eu_rnpa))
 
-# Calculate simpson's diversity index ------------------------------------------
+# Build annual eu level panel --------------------------------------------------
 yr_eu <- yr_eu_spp %>%
   group_by(year, period, eu_rnpa, eu_name) %>%
   summarize(revenue = sum(revenue, na.rm = T),
@@ -238,14 +247,30 @@ yr_eu <- yr_eu_spp %>%
     std_land = (landings - mean(landings[period == "Baseline"], na.rm = T)) / sd(landings[period == "Baseline"], na.rm = T))
 
 # EU charcteristics ------------------------------------------------------------
-simpson <- yr_eu_spp %>%
+taxa_simpson <- yr_eu_spp %>%
   filter(year <= 2013) %>%
   group_by(eu_rnpa, taxa) %>%
-  summarize(revenue = mean(revenue)) %>%
+  summarize(revenue = sum(revenue)) %>%
   group_by(eu_rnpa) %>%
-  summarize(simpson = sum((revenue / sum(revenue)) ^ 2)) %>%
-  mutate(inv_simp = 1 - simpson) %>%
+  summarize(taxa_simpson = 1 - (sum((revenue / sum(revenue)) ^ 2))) %>%
   ungroup()
+
+market_simpson <- yr_eu_spp %>%
+  filter(year <= 2013) %>%
+  group_by(eu_rnpa, market) %>%
+  summarize(revenue = sum(revenue)) %>%
+  group_by(eu_rnpa) %>%
+  summarize(mkt_simpson = 1 - (sum((revenue / sum(revenue)) ^ 2))) %>%
+  ungroup()
+
+pct_export <- yr_eu_spp %>%
+  filter(year <= 2013) %>%
+  group_by(eu_rnpa, market) %>%
+  summarize(revenue = sum(revenue)) %>%
+  pivot_wider(names_from = market,
+              values_from = revenue, values_fill = 0) %>%
+  mutate(pct_export = (Export / (Export + Local))) %>%
+  select(eu_rnpa, pct_export)
 
 richness <- yr_eu_spp %>%
   filter(year <= 2013) %>%
@@ -264,7 +289,9 @@ cv <- yr_eu %>%
   ungroup()
 
 characteristics <- cv %>%
-  left_join(simpson, by = "eu_rnpa") %>%
+  left_join(taxa_simpson, by = "eu_rnpa") %>%
+  left_join(market_simpson, by = "eu_rnpa") %>%
+  left_join(pct_export, by = "eu_rnpa") %>%
   left_join(richness, by = "eu_rnpa") %>%
   left_join(coop_numbers, by = "eu_rnpa")
 
@@ -273,6 +300,10 @@ characteristics <- cv %>%
 # Summary tables
 datasummary((`Species Group` = taxa) * ((`Revenue (USD[2019])` = revenue) + (`Landings (Kg)` = landings)) ~ mean + median + sd + max + min ,
             data = yr_eu_spp)
+
+datasummary((`Market` = market) * ((`Revenue (USD[2019])` = revenue) + (`Landings (Kg)` = landings)) ~ mean + median + sd + max + min ,
+            data = yr_eu_spp %>% group_by(year, eu_rnpa, market) %>%
+              summarize(landings = sum(landings, na.rm = T), revenue = sum(revenue, na.rm = T)))
 
 datasummary((`Revenue (USD[2019])` = revenue) + (`Landings (Kg)` = landings) ~ mean + sd + median + max + min,
             data = yr_eu)

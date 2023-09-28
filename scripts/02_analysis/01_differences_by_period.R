@@ -21,33 +21,34 @@ pacman::p_load(
 )
 
 # Load data --------------------------------------------------------------------
-yr_eu <- readRDS(here("data/processed/year_eu.rds"))
+yr_eu <- readRDS(here("data", "processed", "year_eu.rds"))
+model <- readRDS(here("data", "output", "mixed_effects_model.rds"))
 
 ## PROCESSING ##################################################################
-
-# X ----------------------------------------------------------------------------
-period_difs <- fixest::feols(std_rev ~ period | eu_rnpa,
-              panel.id = ~eu_rnpa + year,
-              vcov = "NW",
-              data = yr_eu) %>%
-  broom::tidy() %>%
-  mutate(term = str_remove(term, "period"),
-         term = fct_relevel(term, c("MHW", "C19")))
+period_diffs <- tidy_lme4(model)
 
 ## VISUALIZE ###################################################################
 
 # X ----------------------------------------------------------------------------
 
-period_plot <- ggplot(data = period_difs,
-                      aes(x = term, y = estimate, fill = term)) +
+period_plot <- ggplot(data = period_diffs,
+                      mapping = aes(x = term, y = estimate, fill = term)) +
+  geom_errorbar(aes(ymin = conf.low,
+                    ymax = conf.high),
+                width = 0) +
   geom_pointrange(aes(ymin = estimate - std.error,
                       ymax = estimate + std.error),
-                  shape = 21) +
+                  shape = 21,
+                  size = 4,
+                  fatten = 1,
+                  linewidth = 2) +
   geom_hline(yintercept = 0) +
   scale_fill_manual(values = period_palette) +
   labs(x = "Period",
-       y = "Estimate") +
+       y = expression("Estimate ("~hat(beta)[1]~"or"~hat(beta)[2]~")")) +
   theme(legend.position = "None")
+
+period_plot
 
 # X ----------------------------------------------------------------------------
 ts_plot <- ggplot(data = yr_eu,
@@ -84,6 +85,5 @@ startR::lazy_ggsave(
   height = 9
 )
 
-
-saveRDS(object = period_difs,
+saveRDS(object = period_diffs,
         file = here("data", "output", "period_diffs.rds"))

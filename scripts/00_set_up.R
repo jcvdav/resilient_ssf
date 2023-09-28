@@ -118,3 +118,31 @@ fix_rnpa <- function(rnpa, length = 8){
   out <- paste0(zeroes, rnpa)
   return(out)
 }
+
+
+tidy_lme4 <- function(model) {
+  # Extract degrees of freedom
+  df <- insight::get_df(model)
+
+  # Extract fixed effects
+  fixefs <- lme4::fixef(model)
+
+  # Extract variance-covariance matrix
+  vcov <- as.matrix(vcov(model))
+
+  # Calculate standard errors
+  ses <- sqrt(diag(vcov))
+
+  # Combine into a tibble
+  tidy_model <- tibble(
+    term = names(fixefs),
+    estimate = fixefs,
+    std.error = ses) %>%
+    # Calculate t.statistic, p.values, and 95% confidence intervals
+    mutate(statistic = estimate / std.error,
+           p.value = pt(statistic, df = df) * 2,
+           conf.low = estimate - (1.96 * std.error),
+           conf.high = estimate + (1.96 * std.error))
+
+  return(tidy_model)
+}

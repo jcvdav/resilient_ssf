@@ -21,29 +21,28 @@ pacman::p_load(
 )
 
 # Load data --------------------------------------------------------------------
-# shock <- readRDS(file = here("data", "processed", "cv_and_shocks.rds"))
+
 
 ## VISUALIZE ###################################################################
 
 # X ----------------------------------------------------------------------------
-s_vs_cv <- shock %>%
-  ggplot(mapping = aes(x = n_spp, y = cv_rev)) +
-  geom_smooth(method = "lm") +
+taxa_vs_cv <- shock %>%
+  ggplot(mapping = aes(x = taxa_simpson, y = cv_rev)) +
+  geom_smooth() +
   geom_point(size = 2) +
-  labs(x = "# Spp",
-       y = "CV") +
-  guides(fill = guide_colorbar(frame.colour = "black",
-                               ticks.colour = "black",
-                               title = "# Spp"))
-
-S_vs_cv <- shock %>%
-  ggplot(mapping = aes(x = 1 - simpson, y = cv_rev)) +
-  geom_smooth(method = "lm") +
-  geom_point(size = 2) +
-  labs(x = "1 - Simpson",
+  labs(x = "Taxonomic diversity (1 - Simpson)",
        y = "CV")
 
-p2 <- plot_grid(s_vs_cv, S_vs_cv, ncol = 1)
+mkt_vs_cv <- shock %>%
+  ggplot(mapping = aes(x = pct_export, y = cv_rev)) +
+  geom_smooth() +
+  geom_point(size = 2) +
+  labs(x = "% Revenue from export markets",
+       y = "CV")
+
+p2 <- plot_grid(taxa_vs_cv,
+                mkt_vs_cv,
+                ncol = 1)
 
 
 startR::lazy_ggsave(plot = p2,
