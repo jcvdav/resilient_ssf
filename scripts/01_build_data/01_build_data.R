@@ -70,8 +70,8 @@ coop_numbers <- read_excel(path = here("data", "raw", "Cooperativas- UnidadesEco
          estado %in% states,
          municipio %in% municipalities,
          oficina %in% offices) %>%
-  mutate(aquaculture = str_detect(tipo, "ACUACULTURA"),
-         wildcaught = str_detect(tipo, "CAPTURA")) %>%
+  mutate(aquaculture = 1 * str_detect(tipo, "ACUACULTURA"),
+         wildcaught = 1 * str_detect(tipo, "CAPTURA")) %>%
   select(eu_rnpa = rnpa,
          aquaculture,
          wildcaught,
@@ -268,7 +268,8 @@ pct_export <- yr_eu_spp %>%
   group_by(eu_rnpa, market) %>%
   summarize(revenue = sum(revenue)) %>%
   pivot_wider(names_from = market,
-              values_from = revenue, values_fill = 0) %>%
+              values_from = revenue,
+              values_fill = 0) %>%
   mutate(pct_export = (Export / (Export + Local))) %>%
   select(eu_rnpa, pct_export)
 

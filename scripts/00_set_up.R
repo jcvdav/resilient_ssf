@@ -142,7 +142,8 @@ tidy_lme4 <- function(model) {
     mutate(statistic = estimate / std.error,
            p.value = pt(statistic, df = df) * 2,
            conf.low = estimate - (1.96 * std.error),
-           conf.high = estimate + (1.96 * std.error))
+           conf.high = estimate + (1.96 * std.error),
+           term = fct_relevel(term, "MHW", "C19"))
 
   return(tidy_model)
 }

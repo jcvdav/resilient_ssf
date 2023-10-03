@@ -45,7 +45,7 @@ period_plot <- ggplot(data = period_diffs,
   geom_hline(yintercept = 0) +
   scale_fill_manual(values = period_palette) +
   labs(x = "Period",
-       y = expression("Estimate ("~hat(beta)[1]~"or"~hat(beta)[2]~")")) +
+       y = expression("Estimate ("~hat(mu)[1]~"or"~hat(mu)[2]~")")) +
   theme(legend.position = "None")
 
 period_plot
