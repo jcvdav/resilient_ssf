@@ -22,11 +22,14 @@ pacman::p_load(
 )
 
 # Define data ------------------------------------------------------------------
+# States to include
 states <- c("BAJA CALIFORNIA", "BAJA CALIFORNIA SUR")
 
+# Municipalites to include within those states
 municipalities <- c("SAN QUINTIN", "PLAYAS DE ROSARITO", "TIJUANA", "ENSENADA",
                   "COMONDU", "MULEGE", "LA PAZ", "LOS CABOS")
 
+# Relevant offices where landings are reported
 offices <- c(
   "BAHIA ASUNCION", "BAHIA TORTUGAS",
   "CD. CONSTITUCION", "EL ROSARIO",
@@ -37,6 +40,7 @@ offices <- c(
   "TIJUANA", "VILLA DE JESUS MARIA"
 )
 
+# Species to remove (freshwater or not relevant to SSF)
 spp_remove <- c("BESUGO",
                 "BAGRE",
                 "LOBINA",
@@ -50,6 +54,7 @@ spp_remove <- c("BESUGO",
                 "BARRILETE",
                 "PETO")
 
+# Species from the list that are often exported (but not only)
 export_spp <- c("CAMARON",
                 "ATUN",
                 "LANGOSTA",
@@ -59,8 +64,8 @@ export_spp <- c("CAMARON",
                 "PULPO")
 
 # Read data --------------------------------------------------------------------
-# CPI
-cpi <- readRDS(here("../ssf_shocks", "data", "processed", "cpi_t_rates.rds"))
+# Mexico's consumer price index, relative to 2019 mexican pesos
+cpi <- readRDS(here("data", "raw", "cpi_t_rates.rds"))
 
 # Coop info
 coop_numbers <- read_excel(path = here("data", "raw", "Cooperativas- UnidadesEconomicas2020.xlsx"),
@@ -75,23 +80,33 @@ coop_numbers <- read_excel(path = here("data", "raw", "Cooperativas- UnidadesEco
   select(eu_rnpa = rnpa,
          aquaculture,
          wildcaught,
+         location = localidad,
+         municipality = municipio,
+         estate = estado,
+         ofice = oficina,
          full_time = emp_planta_number_of_members,
          part_time = emp_eventual,
          n_boats = activos_menores,
          aquaculture_assets = activos_inst_acuicolas) %>%
   distinct()
 
+# Read and assign types. If it's "fisica", then it's a fisher. If it's moral AND
+# it's in the coop_numbers, then it's a cooperative. Otherwise it is an enterprise.
+eu_names_and_types <- read_csv(here("data", "raw", "eu_names_and_types.csv")) %>%
+  select(eu_rnpa, fiscal_type = tipo_persona) %>%
+  distinct() %>%
+  mutate(eu_rnpa = fix_rnpa(eu_rnpa, length = 10),
+         fishing_entity = case_when(fiscal_type == "Fisica" ~ "Fisher",
+                                    eu_rnpa %in% unique(coop_numbers$eu_rnpa) ~ "Cooperative",
+                                    T ~ "Enterprise"))
+
 # Landings data
-landings_raw <- readRDS(
-  file = file.path(
-    "/Users/juancarlosvillasenorderbez/GitHub/",
-    "data_mex_fisheries",
-    "data",
-    "mex_landings",
-    "clean",
-    "mex_landings_2000_2022.rds"
-  )
-) %>%
+landings_raw <- readRDS(file = file.path("/Users/juancarlosvillasenorderbez/GitHub/",
+                                         "data_mex_fisheries",
+                                         "data",
+                                         "mex_landings",
+                                         "clean",
+                                         "mex_landings_2000_2022.rds")) %>%
   filter(state %in% c("BAJA CALIFORNIA", "BAJA CALIFORNIA SUR"),
          !acuaculture_production == "SÍ" | is.na(acuaculture_production),
          live_weight > 0,
@@ -127,6 +142,7 @@ eus_reporting_out <- landings_raw %>%
 eus_only_in <- eus_reporting_in[!(eus_reporting_in %in% eus_reporting_out)]
 length(eus_only_in)
 
+# Find EUs with ten years and that fit the other criteria above
 eus_with_10 <- landings_raw %>%
   filter(office_name %in% offices,
          !main_species_group %in% spp_remove,
@@ -230,7 +246,7 @@ yr_eu_spp <- landings_raw %>%
             landings = sum(live_weight, na.rm = T)) %>%
   ungroup() %>%
   left_join(cpi, by = "year") %>%
-  mutate(revenue = revenue * rate * 0.052) %>% # Mean value of 1 MEX to USD during 2019
+  mutate(revenue = revenue * rate) %>% # Mean value of 1 MEX to USD during 2019
   select(-rate)
 
 length(unique(yr_eu_spp$eu_rnpa))
@@ -294,7 +310,8 @@ characteristics <- cv %>%
   left_join(market_simpson, by = "eu_rnpa") %>%
   left_join(pct_export, by = "eu_rnpa") %>%
   left_join(richness, by = "eu_rnpa") %>%
-  left_join(coop_numbers, by = "eu_rnpa")
+  left_join(coop_numbers, by = "eu_rnpa") %>%
+  left_join(eu_names_and_types, by = "eu_rnpa")
 
 
 
