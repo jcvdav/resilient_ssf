@@ -20,17 +20,15 @@ pacman::p_load(
   tidyverse
 )
 
+source(here("scripts/00_set_up.R"))
 
 # Load data --------------------------------------------------------------------
-model <- readRDS(here("data", "output", "mixed_effects_model.rds"))
+coefs <- readRDS(file = here("data", "output", "coefs.rds"))
+period_diffs <- readRDS(file = here("data", "output", "period_diffs.rds"))
 characteristics <- readRDS(file = here("data", "processed", "characteristics.rds"))
 ## PROCESSING ##################################################################
 
 # X ----------------------------------------------------------------------------
-period_diffs <- tidy_lme4(model)
-coefs <- coef(model)$eu_rnpa %>%
-  as_tibble(rownames = "eu_rnpa")
-
 
 shock <- coefs %>%
   left_join(characteristics, by = "eu_rnpa") %>%
@@ -49,8 +47,8 @@ shock <- coefs %>%
 points_pct <- shock %>%
   group_by(group) %>%
   summarize(n = n(),
-            MHW = 2.5 * mean(MHW),
-            C19 = 2.5 * mean(C19)) %>%
+            MHW = 2.1 * mean(MHW),
+            C19 = 2.1 * mean(C19)) %>%
   mutate(pct = paste0(round((n / sum(n)) * 100, 1), "%"))
 
 ## VISUALIZE ###################################################################
@@ -63,8 +61,10 @@ base_plot <- ggplot(data = shock,
   scale_fill_viridis_d() +
   scale_size_manual(values = c(0.5, 1, 1.5))
 
-cor.test(shock$MHW, shock$C19, method = "kendall") %>%
+main_cor_test <- cor.test(shock$MHW, shock$C19, method = "kendall") %>%
   broom::tidy()
+
+main_cor_test
 
 p1 <- base_plot +
   geom_rect(xmin = 0, xmax = Inf, ymin = 0, ymax = Inf,
@@ -78,10 +78,13 @@ p1 <- base_plot +
                  linewidth = 0.1) +
   geom_point(aes(fill = taxa_bin,
                  size = mkt_bin)) +
-  labs(x = expression("MHW shock ("~hat(gamma)[1]~")"),
-       y = expression("C19 shock ("~hat(gamma)[2]~")"),
+  geom_text(data = points_pct,
+            aes(label = pct)) +
+  labs(x = expression("Economic unit's response to MHW shock ("~hat(gamma)[1]~")"),
+       y = expression("Economic unit's response to C19 shock ("~hat(gamma)[2]~")"),
        fill = "Catch diversity",
        size = "% Export") +
+  theme(legend.position = "left") +
   guides(fill = guide_legend(title.position = "top",
                              show.limits = T,
                              frame.colour = "black",
@@ -89,80 +92,14 @@ p1 <- base_plot +
          size = guide_legend(title.position = "top",
                              override.aes = list(fill = "black",
                                                  shape = 21,
-                                                 color = "transparent"))) +
-  theme(legend.position = "left") +
-  geom_text(data = points_pct,
-            aes(label = pct)) +
-  annotate(geom = "text",
-           x = 0.75,
-           y = 2.9,
-           size = 2,
-           label = expression(T[b]==0.09~"("~p==0.019~")"))
+                                                 color = "transparent")))
 
-taxa_correlation <- shock %>%
-  group_by(taxa_bin) %>%
-  nest() %>%
-  mutate(cor_test = map(.x = data, ~broom::tidy(cor.test(.x$MHW, .x$C19, method = "kendall")))) %>%
-  select(taxa_bin, cor_test) %>%
-  unnest(cor_test) %>%
-  mutate(string = paste0("T[b]==",round(estimate, 3),"~(p==", round(p.value, 3), ")"))
+p <- ggMarginal(p1, type = "densigram")
 
-mkt_correlation <- shock %>%
-  group_by(mkt_bin) %>%
-  nest() %>%
-  mutate(cor_test = map(.x = data, ~broom::tidy(cor.test(.x$MHW, .x$C19, method = "kendall")))) %>%
-  select(mkt_bin, cor_test) %>%
-  unnest(cor_test) %>%
-  mutate(string = paste0("T[b]==",round(estimate, 3),"~(p==", round(p.value, 3), ")"))
-
-p2 <- base_plot +
-  geom_density2d(color = "black",
-                 linewidth = 0.1,
-                 bins = 5) +
-  geom_smooth(method = "lm", color = "red") +
-  geom_point(aes(fill = taxa_bin,
-                 size = mkt_bin)) +
-  theme(legend.position = "None",
-        axis.title = element_blank(),
-        panel.spacing = unit(0, "mm")) +
-  facet_wrap(~taxa_bin, ncol = 1, as.table = F) +
-  geom_text(data = taxa_correlation,
-            x = 0, y = 2.5,
-            aes(label = string),
-            size = 1.5,
-            parse = T)
-
-p3 <- base_plot +
-  geom_density2d(color = "black",
-                 linewidth = 0.1,
-                 bins = 5) +
-  geom_smooth(method = "lm", color = "red") +
-  geom_point(aes(fill = taxa_bin,
-                 size = mkt_bin)) +
-  scale_color_binned(type = "viridis") +
-  theme(legend.position = "None",
-        axis.title = element_blank(),
-        panel.spacing = unit(0, "mm")) +
-  facet_wrap(~mkt_bin, ncol = 1,
-             as.table = F) +
-  geom_text(data = mkt_correlation,
-            x = 0, y = 2.5,
-            aes(label = string),
-            size = 1.5,
-            parse = T)
-
-p123 <- plot_grid(ggMarginal(p1, type = "densigram"),
-                  p2, p3,
-                 ncol = 3,
-                 align = "h",
-                 rel_widths = c(3.5, 1, 1),
-                 axis = "b",
-                 labels = "AUTO")
-
-startR::lazy_ggsave(plot = p123,
-                    filename = "figure2_concordance_of_shocks",
-                    width = 18,
-                    height = 10)
+startR::lazy_ggsave(plot = p,
+                    filename = "figure3_concordance_of_shocks",
+                    width = 12,
+                    height = 9)
 
 
 ## EXPORT ######################################################################

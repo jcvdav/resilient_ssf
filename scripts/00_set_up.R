@@ -1,6 +1,6 @@
 pt <- 0.176389
 ggplot2::theme_set(
-  ggplot2::theme_bw()
+  ggplot2::theme_minimal(base_size = 7)
 )
 ggplot2::theme_update(
   line = ggplot2::element_line(color = "black",

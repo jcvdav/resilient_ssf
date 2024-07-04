@@ -16,9 +16,12 @@
 pacman::p_load(
   here,
   fixest,
+  lme4,
   cowplot,
   tidyverse
 )
+
+source(here("scripts/00_set_up.R"))
 
 # Load data --------------------------------------------------------------------
 yr_eu <- readRDS(here("data", "processed", "year_eu.rds"))
@@ -31,7 +34,6 @@ period_diffs <- tidy_lme4(model)
 
 # X ----------------------------------------------------------------------------
 
-set.seed(1)
 period_plot <- ggplot(data = period_diffs,
                       mapping = aes(x = term, y = estimate, fill = term)) +
   geom_errorbar(aes(ymin = conf.low,
@@ -68,13 +70,15 @@ ts_plot <- ggplot(data = yr_eu,
   scale_x_continuous(expand = c(0.01, 0)) +
   labs(x = "Year",
        y = "Normalized revenues (Z-score)",
-       fill = "Perod") +
-  theme(legend.position = c(0.5, 1),
+       fill = "Period") +
+  theme(legend.position = "inside",
+        legend.position.inside = c(0.5, 1),
         legend.justification = c(0.5, 1),
-        legend.direction = "horizontal")
+        legend.direction = "horizontal",
+        legend.title.position = "top")
 
 plot <- plot_grid(ts_plot, period_plot,
-                  rel_widths = c(1, 0.25),
+                  rel_widths = c(1, 0.3),
                   labels = "AUTO",
                   align = "hv")
 

@@ -16,13 +16,13 @@
 pacman::p_load(
   here,
   cowplot,
-  # modelr,
-  panelsummary,
   fixest,
   modelsummary,
   magrittr,
   tidyverse
 )
+
+source(here("scripts/00_set_up.R"))
 
 # Load data --------------------------------------------------------------------
 shock <- readRDS(file = here("data", "output", "shock_estimates.rds")) %>%
@@ -32,28 +32,23 @@ shock <- readRDS(file = here("data", "output", "shock_estimates.rds")) %>%
 
 # X ----------------------------------------------------------------------------
 
-m1 <- feols(-1 * MHW ~ taxa_simpson,
-            data = shock)
-m2 <- feols(-1 * C19 ~ pct_export,
-            data = shock)
-m3 <- feols(cv_land ~ csw(taxa_simpson + pct_export + fishing_entity,  full_time + part_time + aquaculture + n_boats),
-            data = shock)
+models <- feols(c(-1*MHW, -1*C19, cv_land) ~  taxa_simpson + pct_export | fishing_entity,
+                data = shock)
+models %>%
+  set_names(nm = c("MHW", "C19", "CV")) %>%
+  modelsummary(output = here("results", "tab", "tab2_drivers.png"),
+               coef_map = c("taxa_simpson" = "Catch diversity",
+                            "pct_export" = "% Export",
+                            "fishing_entityEnterprise" = "Company",
+                            "fishing_entityCooperative" = "Cooperative",
+                            "fishing_entityFisher" = "Fisher"),
+               gof_omit = c("IC|Adj|Std|FE|MSE"),
+               stars = panelsummary:::econ_stars(),
+               notes = "Column 1 shows results for the effect of catch diversity on revenue losses during the MHW,
+               column 2 shows the effect of reliance on export markets on COVID-19 disruptions.
+               Column 3 shows results for the effect of both drivers on stability the coefficient of variation.
+               All specifications include fixed-effects by type of economic unit.")
 
-panelsummary(list(m1, m2),
-             list(m3[[1]], m3[[2]]),
-             panel_labels = c("Panel A: Outcome variable is -1 * gamma^j_i",
-                              "Panel B: Outcome variable is CV"),
-             coef_map = c("taxa_simpson" = "Catch diversity",
-                          "pct_export" = "% Export",
-                          "full_time" = "Full time employees",
-                          "part_time" = "Part time employees",
-                          "aquaculture" = "Aquaculture",
-                          "n_boats" = "# Boats",
-                          "fishing_entityEnterprise" = "Company",
-                          "fishing_entityCooperative" = "Cooperative",
-                          "(Intercept)" = "Intercept"),
-             gof_omit = c("IC|Adj|Std"),
-             stars = "econ")
 ## VISUALIZE ###################################################################
 
 # X ----------------------------------------------------------------------------
@@ -146,7 +141,7 @@ p2
 
 
 startR::lazy_ggsave(plot = p2,
-                    filename = "figure3_diversity_vs_cv.png",
+                    filename = "figure5_diversity_vs_cv",
                     width = 12 ,
                     height = 12)
 ## EXPORT ######################################################################

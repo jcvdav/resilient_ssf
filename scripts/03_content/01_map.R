@@ -23,13 +23,15 @@ pacman::p_load(
   tidyverse
 )
 
+source(here("scripts/00_set_up.R"))
+
 # Load data --------------------------------------------------------------------
 shock <- readRDS(file = here("data", "processed", "cv_and_shocks.rds"))
 
-states <- ne_states(country = "Mexico", returnclass = "sf") %>%
-  filter(name %in% c("Baja California", "Baja California Sur", "Sonora", "Sinaloa", "Chihuahua", "Durango")) %>%
-  mutate(baja = name %in% c("Baja California", "Baja California Sur")) %>%
-  st_crop(xmin = -118, xmax = -108, ymin = 21, ymax = 34)
+# states <- ne_states(country = "Mexico", returnclass = "sf") %>%
+#   filter(name %in% c("Baja California", "Baja California Sur", "Sonora", "Sinaloa", "Chihuahua", "Durango")) %>%
+#   mutate(baja = name %in% c("Baja California", "Baja California Sur")) %>%
+#   st_crop(xmin = -118, xmax = -108, ymin = 21, ymax = 34)
 
 mex <- ne_countries(country = c("Mexico", "United States of America"), returnclass = "sf", scale = "large") %>%
   st_crop(xmin = -118, xmax = -108, ymin = 21, ymax = 34)
@@ -42,10 +44,15 @@ municipalities <- c("SAN QUINTÍN", "PLAYAS DE ROSARITO", "TIJUANA", "ENSENADA",
   str_to_title() %>%
   str_replace("De", "de")
 
-muni <- st_read("data/raw/municipios_de_mexico/") %>%
+muni <- st_read(here("data/raw/municipios_de_mexico/")) %>%
   filter(NOM_ENT %in% c("Baja California", "Baja California Sur")) %>%
   mutate(pacific = NOM_MUN %in% municipalities) %>%
   st_transform(st_crs(world))
+
+states <- muni %>%
+  group_by(NOM_ENT) %>%
+  summarize(a = 1) %>%
+  select(-a)
 
 offices <- tribble(~"office", ~"lat", ~"lon",
                    "BAHIA ASUNCION", 27.1368789, -114.3057131,
@@ -88,14 +95,14 @@ p2 <- ggplot() +
   geom_sf(data = mex,
           color = "black",
           linewidth = 0.1) +
-  # geom_sf(data = states,
-  #         mapping = aes(fill = baja),
-  #         color = "black",
-  #         linewidth = 0.1) +
   geom_sf(data = muni,
           mapping = aes(fill = pacific),
           color = "black") +
-  geom_sf(data = offices, size = 1) +
+  geom_sf(data = states,
+          fill = "transparent",
+          color = "black",
+          linewidth = 1) +
+  geom_sf(data = offices, size = 3, fill = "steelblue") +
   scale_fill_manual(values = c("transparent", "gray50")) +
   scale_linewidth_manual(values = c(0.1, 0.5)) +
   scale_x_continuous(expand = c(0, 0)) +
@@ -110,7 +117,7 @@ p <- ggdraw(p2) +
 
 # X ----------------------------------------------------------------------------
 ggsave(plot = p,
-       filename = here("results", "img", "figure1_map.png"),
+       filename = here("results", "img", "fig1_map.png"),
        width = 4,
        height = 5)
 
