@@ -46,8 +46,8 @@ ranefs <- ranef(model)$eu_rnpa %>%
 modelsummary(model,
              stars = panelsummary:::econ_stars(),
              gof_omit = c("IC|Adj|Std|FE|MSE"),
-             output = here("results", "tab", "tab1_main_model.png"),
-             title = "Main effects of Marine Heatwaves (MHW) and COVID-19 (C19) disruptions on normalized landings by 245 economic units. Numbers in parentheses are standard errors.")
+             output = here("results", "tab", "tab1_main_model.docx"),
+             title = "Regression results for the effects of Marine heatwaves (MHW) and COVID-19 (C19) disruptions on standardized revenues from fishing for 245 economic units in Baja California. Numbers in parentheses indicate standard errors and asterisks show statistical significance. Standard deviations of the random effects are also included at the bottom of the table.")
 
 saveRDS(object = model,
         file = here("data", "output", "mixed_effects_model.rds"))

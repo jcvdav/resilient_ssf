@@ -36,7 +36,7 @@ models <- feols(c(-1*MHW, -1*C19, cv_land) ~  taxa_simpson + pct_export | fishin
                 data = shock)
 models %>%
   set_names(nm = c("MHW", "C19", "CV")) %>%
-  modelsummary(output = here("results", "tab", "tab2_drivers.png"),
+  modelsummary(output = here("results", "tab", "tab2_drivers.docx"),
                coef_map = c("taxa_simpson" = "Catch diversity",
                             "pct_export" = "% Export",
                             "fishing_entityEnterprise" = "Company",
@@ -44,10 +44,12 @@ models %>%
                             "fishing_entityFisher" = "Fisher"),
                gof_omit = c("IC|Adj|Std|FE|MSE"),
                stars = panelsummary:::econ_stars(),
-               notes = "Column 1 shows results for the effect of catch diversity on revenue losses during the MHW,
+               title = "Table 2 - Regression results for drivers of shock and stability in the face of Marine heatwaves (MHW) and COVID-19 disruptions for 245 economic units in the Baja California Peninsula.
+               Column 1 shows results for the effect of catch diversity on revenue losses during the MHW,
                column 2 shows the effect of reliance on export markets on COVID-19 disruptions.
                Column 3 shows results for the effect of both drivers on stability the coefficient of variation.
                All specifications include fixed-effects by type of economic unit.")
+
 
 ## VISUALIZE ###################################################################
 
