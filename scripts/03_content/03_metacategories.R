@@ -25,7 +25,11 @@ nemer <- read_xlsx(path = here("data/raw/Histograma de metacategorías.xlsx"),
                    sheet = 2) %>%
   mutate(Metacategoria = str_replace(Metacategoria, pattern = "/", replacement = "/\n"),
          Metacategoria = fct_reorder(Metacategoria, N, max),
-         Metacategoria = fct_relevel(Metacategoria, "Other"))
+         Metacategoria = fct_relevel(Metacategoria, "Other")) %>%
+  group_by(Cooperativa) %>%
+  mutate(n = sum(N)) %>%
+  ungroup() %>%
+  mutate(Cooperativa = paste0(Cooperativa, "\n(N = ", n, ")"))
 
 ## PROCESSING ##################################################################
 

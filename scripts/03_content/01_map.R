@@ -72,6 +72,14 @@ offices <- tribble(~"office", ~"lat", ~"lon",
   st_as_sf(coords = c("lon", "lat"),
            crs = 4326)
 
+communities <- tribble(~"community", ~"lat", ~"lon",
+                       "El Rosario", 30.0595656, -115.7452369,
+                       "Bahía Tortugas", 27.6929632, -114.9071388,
+                       "Isla Cedros", 28.1154271, -115.1950819,
+                       "Isla Natividad", 27.8723398,-115.2067512) %>%
+  st_as_sf(coords = c("lon", "lat"),
+           crs = 4326)
+
 ## VISUALIZE ###################################################################
 
 # X ----------------------------------------------------------------------------
@@ -103,11 +111,23 @@ p2 <- ggplot() +
           color = "black",
           linewidth = 1) +
   geom_sf(data = offices, size = 3, fill = "steelblue") +
+  geom_sf(data = communities, size = 1, fill = "red") +
+  ggrepel::geom_text_repel(
+    data = communities,
+    aes(label = community, geometry = geometry),
+    stat = "sf_coordinates",
+    min.segment.length = 0,
+    colour = "black",
+    size = 2,
+    segment.colour = "black",
+    nudge_x = -1
+  ) +
   scale_fill_manual(values = c("transparent", "gray50")) +
   scale_linewidth_manual(values = c(0.1, 0.5)) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  theme(legend.position = "None") +
+  theme(legend.position = "None",
+        axis.title = element_blank()) +
   annotation_scale(location = 'tr')
 
 p <- ggdraw(p2) +

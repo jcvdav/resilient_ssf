@@ -68,6 +68,16 @@ alt_mhw_c19 <- yr_eu %>%
          MHW = 1 * (period == "MHW"),
          C19 = 1 * (period == "C19"))
 
+post_04 <- yr_eu %>%
+  ungroup() %>%
+  filter(!year <= 2003) %>%
+  group_by(eu_rnpa) %>%
+  mutate(
+    std_rev = (revenue - mean(revenue[period == "Baseline"], na.rm = T)) / sd(revenue[period == "Baseline"], na.rm = T)) %>%
+  mutate(baseline = 1 * (period == "Baseline"),
+         MHW = 1 * (period == "MHW"),
+         C19 = 1 * (period == "C19"))
+
 ## PROCESSING ##################################################################
 free_intercept <- lmer(std_rev ~ MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
                 data = yr_eu)
@@ -79,11 +89,14 @@ alt_c19_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C19 |
 alt_mhw_c19_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
                           data = alt_mhw_c19)
 
+post_04_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
+                          data = post_04)
+
 ## EXPORT ######################################################################
 
 # X ----------------------------------------------------------------------------
-list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model) %>%
-  set_names(c("Main model", "Free intercept", "MHW (2014-2016)", "C19 (2020-2021)", "MHW (2014-2016) & C19 (2020-2021)")) %>%
+list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model) %>%
+  set_names(c("Main model", "Free intercept", "MHW (2014-2016)", "C19 (2020-2021)", "MHW (2014-2016) & C19 (2020-2021)", "Post '04 data")) %>%
   modelsummary(gof_omit = c("IC|Adj|Std|FE|MSE"),
                output = here("results", "tab", "tabS2_robustness_checks.docx"),
                threeparttable = T,
@@ -92,10 +105,11 @@ list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model) %>%
                The first column shows the main-text estimates, for reference. The second column uses the same variable deffinitions but allows for a free-varying y-intercept.
                Column 3 redefines the periods based the marine heatwave regime ocurring between 2014-2016.
                Column 4 redefines the periods beasd on the Pandemic ranging from 2020-2021.
-               Column 5 combines the marine heatwave and COVID-19 period deffinitions in columns three and four.")
+               Column 5 combines the marine heatwave and COVID-19 period deffinitions in columns three and four.
+               Column 6 excludes years 2001-2003, a period of time associated with the dot-com crash and economic uncertainty.")
 
 
-list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model) %>%
+list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model) %>%
   map_dfr(~as_tibble(coef(.x)$eu_rnpa, rownames = "eu_rnpa"), .id = "source") %>%
   select(1:3) %>%
   pivot_wider(names_from = source, values_from = MHW)%>%
@@ -103,7 +117,7 @@ list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model) %>%
   plot(main = "Pairwise comparisons of eu-fixed effects for MHW under different speciications")
 
 
-list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model) %>%
+list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model) %>%
   map_dfr(~as_tibble(coef(.x)$eu_rnpa, rownames = "eu_rnpa"), .id = "source") %>%
   select(1:4) %>%
   select(-3) %>%
