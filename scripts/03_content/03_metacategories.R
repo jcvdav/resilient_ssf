@@ -29,15 +29,43 @@ nemer <- read_xlsx(path = here("data/raw/Histograma de metacategorías.xlsx"),
   group_by(Cooperativa) %>%
   mutate(n = sum(N)) %>%
   ungroup() %>%
-  mutate(Cooperativa = paste0(Cooperativa, "\n(N = ", n, ")"))
+  mutate(Cooperativa = paste0(Cooperativa, "\n(N = ", n, ")"),
+         Cooperativa = str_to_title(Cooperativa))
+
+isa <- read_xlsx(path = here("data/raw/Social Problems_AartJCV.xlsx"),
+                 sheet = 1, range = "A2:F9") |>
+  pivot_longer(cols = c(2:6),
+               names_to = "coop_code",
+               values_to = "value") |>
+  # replace_na(list(value = 0)) |>
+  rename(problem_code = Problem) |>
+  mutate(coop_code = as.numeric(coop_code),
+         problem_code = as.numeric(problem_code))
+
+coops <- read_xlsx(path = here("data/raw/Social Problems_AartJCV.xlsx"),
+                   sheet = 1, range = "I2:J7") |>
+  rename(coop = Cooperative, coop_code = `#`) |>
+  mutate(coop = str_to_title(coop))
+
+problems <- read_xlsx(path = here("data/raw/Social Problems_AartJCV.xlsx"),
+                      sheet = 1, range = "L2:M9") |>
+  rename(problem = Problem, problem_code = `#`)
 
 ## PROCESSING ##################################################################
 
 # X ----------------------------------------------------------------------------
-p <- ggplot(data = nemer,
-       aes(x = Metacategoria,
-           y = N,
-           fill = Metacategoria)) +
+isa_combined <- isa |>
+  left_join(coops, by = join_by("coop_code")) |>
+  left_join(problems, by = join_by("problem_code")) |>
+  select(coop, problem, value)
+
+## VISUALIZE ###################################################################
+
+# X ----------------------------------------------------------------------------
+p1 <- ggplot(data = nemer,
+            aes(x = Metacategoria,
+                y = N,
+                fill = Metacategoria)) +
   geom_col(color = "black",
            linewidth = 0.5) +
   theme_minimal(base_size = 7) +
@@ -48,9 +76,11 @@ p <- ggplot(data = nemer,
   facet_wrap(~Cooperativa, ncol = 5) +
   labs(y = "Count")
 
-## VISUALIZE ###################################################################
-
-# X ----------------------------------------------------------------------------
+isa_combined |>
+  mutate(value = ifelse(!is.na(value), paste0(round(value * 100, 2), "%"), "-")) |>
+  pivot_wider(names_from = coop, values_from = value) |>
+  rename(Problem = problem) |>
+  kableExtra::kbl(caption = "")
 
 ## EXPORT ######################################################################
 

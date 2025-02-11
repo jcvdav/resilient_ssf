@@ -20,6 +20,7 @@ pacman::p_load(
   smoothr,
   cowplot,
   ggspatial,
+  ggrepel,
   tidyverse
 )
 
@@ -37,22 +38,6 @@ mex <- ne_countries(country = c("Mexico", "United States of America"), returncla
   st_crop(xmin = -118, xmax = -108, ymin = 21, ymax = 34)
 
 world <- ne_countries(returnclass = "sf", scale = "small")
-
-# Municipalites to include within those states
-municipalities <- c("SAN QUINTÍN", "PLAYAS DE ROSARITO", "TIJUANA", "ENSENADA",
-                    "COMONDÚ", "MULEGÉ", "LA PAZ", "LOS CABOS") %>%
-  str_to_title() %>%
-  str_replace("De", "de")
-
-muni <- st_read(here("data/raw/municipios_de_mexico/")) %>%
-  filter(NOM_ENT %in% c("Baja California", "Baja California Sur")) %>%
-  mutate(pacific = NOM_MUN %in% municipalities) %>%
-  st_transform(st_crs(world))
-
-states <- muni %>%
-  group_by(NOM_ENT) %>%
-  summarize(a = 1) %>%
-  select(-a)
 
 offices <- tribble(~"office", ~"lat", ~"lon",
                    "BAHIA ASUNCION", 27.1368789, -114.3057131,
@@ -103,13 +88,6 @@ p2 <- ggplot() +
   geom_sf(data = mex,
           color = "black",
           linewidth = 0.1) +
-  geom_sf(data = muni,
-          mapping = aes(fill = pacific),
-          color = "black") +
-  geom_sf(data = states,
-          fill = "transparent",
-          color = "black",
-          linewidth = 1) +
   geom_sf(data = offices, size = 3, fill = "steelblue") +
   geom_sf(data = communities, size = 1, fill = "red") +
   ggrepel::geom_text_repel(
