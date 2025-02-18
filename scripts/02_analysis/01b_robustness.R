@@ -78,6 +78,21 @@ post_04 <- yr_eu %>%
          MHW = 1 * (period == "MHW"),
          C19 = 1 * (period == "C19"))
 
+HMC <- yr_eu %>%
+  ungroup() %>%
+  mutate(period = case_when(year == 2008 ~ "HMC",
+                            year %in% (c(2015:2016)) ~ "MHW",
+                            year %in% c(2020:2022) ~ "C19",
+                            T ~ "Baseline"),
+         period = fct_relevel(period, c("Baseline", "MHW", "C19"))) %>%
+  group_by(eu_rnpa) %>%
+  mutate(
+    std_rev = (revenue - mean(revenue[period == "Baseline"], na.rm = T)) / sd(revenue[period == "Baseline"], na.rm = T)) %>%
+  mutate(baseline = 1 * (period == "Baseline"),
+         HMC = 1 * (period == "HMC"),
+         MHW = 1 * (period == "MHW"),
+         C19 = 1 * (period == "C19"))
+
 ## PROCESSING ##################################################################
 free_intercept <- lmer(std_rev ~ MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
                 data = yr_eu)
@@ -91,13 +106,15 @@ alt_mhw_c19_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C
 
 post_04_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
                           data = post_04)
+HMC_model <- lmer(std_rev ~ 0 + HMC + MHW + C19 + (0 + HMC | eu_rnpa) + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
+                  data = HMC)
 
 ## EXPORT ######################################################################
 
 # X ----------------------------------------------------------------------------
-list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model) %>%
-  set_names(c("Main model", "Free intercept", "MHW (2014-2016)", "C19 (2020-2021)", "MHW (2014-2016) & C19 (2020-2021)", "Post '04 data")) %>%
-  modelsummary(gof_omit = c("IC|Adj|Std|FE|MSE"),
+list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
+  set_names(c("Main model", "Free intercept", "MHW (2014-2016)", "C19 (2020-2021)", "MHW (2014-2016) & C19 (2020-2021)", "Post '04 data", "HMC '08")) %>%
+  modelsummary(gof_omit = c("IC|Adj|Std|FE|MSE"), coef_omit = "(Intercept)|HMC",
                output = here("results", "tab", "tabS2_robustness_checks.docx"),
                threeparttable = T,
                stars = panelsummary:::econ_stars(),
@@ -109,7 +126,7 @@ list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, pos
                Column 6 excludes years 2001-2003, a period of time associated with the dot-com crash and economic uncertainty.")
 
 
-list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model) %>%
+list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
   map_dfr(~as_tibble(coef(.x)$eu_rnpa, rownames = "eu_rnpa"), .id = "source") %>%
   select(1:3) %>%
   pivot_wider(names_from = source, values_from = MHW)%>%
@@ -117,7 +134,7 @@ list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, pos
   plot(main = "Pairwise comparisons of eu-fixed effects for MHW under different speciications")
 
 
-list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model) %>%
+list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
   map_dfr(~as_tibble(coef(.x)$eu_rnpa, rownames = "eu_rnpa"), .id = "source") %>%
   select(1:4) %>%
   select(-3) %>%
