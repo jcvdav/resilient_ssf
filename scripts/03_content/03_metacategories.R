@@ -28,9 +28,13 @@ nemer <- read_xlsx(path = here("data/raw/Histograma de metacategorías.xlsx"),
          Metacategoria = fct_relevel(Metacategoria, "Other")) %>%
   group_by(Cooperativa) %>%
   mutate(n = sum(N)) %>%
+  group_by(Metacategoria) |>
+  mutate(n2 = sum(N)) |>
   ungroup() %>%
   mutate(Cooperativa = paste0(Cooperativa, "\n(N = ", n, ")"),
-         Cooperativa = str_to_title(Cooperativa))
+         Cooperativa = str_to_title(Cooperativa),
+         Metacategoria = paste0(Metacategoria, "\n(N = ", n2, ")"),
+         Metacategoria = fct_reorder(Metacategoria, n2))
 
 isa <- read_xlsx(path = here("data/raw/Social Problems_AartJCV.xlsx"),
                  sheet = 1, range = "A2:F9") |>
@@ -68,7 +72,7 @@ p1 <- ggplot(data = nemer,
                 fill = Metacategoria)) +
   geom_col(color = "black",
            linewidth = 0.5) +
-  theme_minimal(base_size = 7) +
+  theme_minimal(base_size = 6) +
   theme(legend.position = "None",
         axis.title.y = element_blank()) +
   coord_flip() +
@@ -76,6 +80,7 @@ p1 <- ggplot(data = nemer,
   facet_wrap(~Cooperativa, ncol = 5) +
   labs(y = "Count")
 
+# Build table ------------------------------------------------------------------
 isa_combined |>
   mutate(value = ifelse(!is.na(value), paste0(round(value * 100, 2), "%"), "-")) |>
   pivot_wider(names_from = coop, values_from = value) |>
@@ -85,7 +90,7 @@ isa_combined |>
 ## EXPORT ######################################################################
 
 # X ----------------------------------------------------------------------------
-startR::lazy_ggsave(plot = p,
+startR::lazy_ggsave(plot = p1,
                     filename = "figure4_metacategories",
-                    width = 15,
-                    height = 5)
+                    width = 16,
+                    height = 5.5)
