@@ -59,7 +59,7 @@ offices <- tribble(~"office", ~"lat", ~"lon",
 
 communities <- tribble(~"community", ~"lat", ~"lon",
                        "El Rosario", 30.0595656, -115.7452369,
-                       "Bahía Tortugas", 27.6929632, -114.9071388,
+                       "Bahía Asunción", 27.141132, -114.295047,
                        "Isla Cedros", 28.1154271, -115.1950819,
                        "Isla Natividad", 27.8723398,-115.2067512) %>%
   st_as_sf(coords = c("lon", "lat"),
@@ -105,7 +105,8 @@ p2 <- ggplot() +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
   theme(legend.position = "None",
-        axis.title = element_blank()) +
+        axis.title = element_blank(),
+        axis.ticks = element_line(color = "black")) +
   annotation_scale(location = 'tr')
 
 p <- ggdraw(p2) +
@@ -116,6 +117,11 @@ p <- ggdraw(p2) +
 # X ----------------------------------------------------------------------------
 ggsave(plot = p,
        filename = here("results", "img", "fig1_map.png"),
+       width = 4,
+       height = 5)
+
+ggsave(plot = p,
+       filename = here("results", "img", "fig1_map.pdf"),
        width = 4,
        height = 5)
 
