@@ -5,6 +5,8 @@ ggplot2::theme_set(
 ggplot2::theme_update(
   line = ggplot2::element_line(color = "black",
                                linewidth = pt),
+  axis.ticks = ggplot2::element_line(color = "black",
+                               linewidth = pt),
   panel.grid = ggplot2::element_blank(),
   legend.background = ggplot2::element_blank(),
   legend.key = ggplot2::element_blank(),

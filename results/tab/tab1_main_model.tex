@@ -1,0 +1,27 @@
+\begin{table}
+\centering
+\begin{talltblr}[         %% tabularray outer open
+caption={\label{tab:main_reg}Regression results for reductions in standard-normalized revenues during Marine heatwaves (MHW) and COVID-19 (C19) periods for 244 economic units in Baja California. Numbers in parentheses indicate standard errors and asterisks show statistical significance. Standard deviations of the random effects are also included at the bottom of the table.},
+note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]},
+column{2}={}{halign=c,},
+column{1}={}{halign=l,},
+hline{9}={1,2}{solid, black, 0.05em},
+}                     %% tabularray inner close
+\toprule
+& (1) \\ \midrule %% TinyTableHeader
+MHW               & \num{-0.205}*** \\
+& (\num{0.053})   \\
+C19               & \num{-0.307}*** \\
+& (\num{0.069})   \\
+SD (MHW eu_rnpa)  & \num{0.472}     \\
+SD (C19 eu_rnpa)  & \num{0.914}     \\
+SD (Observations) & \num{0.941}     \\
+Num.Obs.          & \num{4749}      \\
+R2 Marg.          & \num{0.015}     \\
+R2 Cond.          & \num{0.039}     \\
+\bottomrule
+\end{talltblr}
+\end{table}

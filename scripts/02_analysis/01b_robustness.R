@@ -27,7 +27,12 @@ model <- readRDS(here("data", "output", "mixed_effects_model.rds"))
 yr_eu <- readRDS(here("data/processed/year_eu.rds")) %>%
   mutate(baseline = 1 * (period == "Baseline"),
          MHW = 1 * (period == "MHW"),
-         C19 = 1 * (period == "C19"))
+         C19 = 1 * (period == "C19"))|>
+  group_by(eu_rnpa) |>
+  mutate(n_g = n_distinct(period)) |>
+  ungroup() |>
+  filter(n_g == 3) |>
+  ungroup()
 
 alt_mhw <- yr_eu %>%
   ungroup() %>%
@@ -115,10 +120,11 @@ HMC_model <- lmer(std_rev ~ 0 + HMC + MHW + C19 + (0 + HMC | eu_rnpa) + (0 + MHW
 list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
   set_names(c("Main model", "Free intercept", "MHW (2014-2016)", "C19 (2020-2021)", "MHW (2014-2016) & C19 (2020-2021)", "Post '04 data", "HMC '08")) %>%
   modelsummary(gof_omit = c("IC|Adj|Std|FE|MSE"), coef_omit = "(Intercept)|HMC",
-               output = here("results", "tab", "tabS2_robustness_checks.docx"),
+               output = here("results", "tab", "tabS2_robustness_checks.tex"),
                threeparttable = T,
                stars = panelsummary:::econ_stars(),
-               title = "Table S2 - Main effects of Marine Heatwaves (MHW) and COVID-19 (C19) disruptions on normalized landings by 245 economic units. Numbers in parentheses are standard errors.
+               escape = F,
+               title = "\\label{tab:robustness}Table S2 - Main effects of Marine Heatwaves (MHW) and COVID-19 (C19) disruptions on normalized landings by 245 economic units. Numbers in parentheses are standard errors.
                The first column shows the main-text estimates, for reference. The second column uses the same variable deffinitions but allows for a free-varying y-intercept.
                Column 3 redefines the periods based the marine heatwave regime ocurring between 2014-2016.
                Column 4 redefines the periods beasd on the Pandemic ranging from 2020-2021.

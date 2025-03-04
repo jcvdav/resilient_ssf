@@ -24,7 +24,7 @@ source(here("scripts/00_set_up.R"))
 
 # Load data --------------------------------------------------------------------
 coefs <- readRDS(file = here("data", "output", "coefs.rds"))
-period_diffs <- readRDS(file = here("data", "output", "period_diffs.rds"))
+# period_diffs <- readRDS(file = here("data", "output", "period_diffs.rds"))
 characteristics <- readRDS(file = here("data", "processed", "characteristics.rds"))
 ## PROCESSING ##################################################################
 
