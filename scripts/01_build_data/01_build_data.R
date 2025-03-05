@@ -104,8 +104,8 @@ eu_names_and_types <- read_csv(here("data", "raw", "eu_names_and_types.csv")) %>
                                     T ~ "Enterprise"))
 
 # Landings data
-landings_raw <- readRDS(file = file.path("/Users/juancarlosvillasenorderbez/GitHub/",
-                                         "data_mex_fisheries",
+landings_raw <- readRDS(file = file.path("/Users/jcvd/GitHub/",
+                                         "mex_fisheries",
                                          "data",
                                          "mex_landings",
                                          "clean",
@@ -152,7 +152,7 @@ eus_with_10 <- landings_raw %>%
          eu_rnpa %in% eus_only_in
          ) %>%
   mutate(
-    period = case_when(year %in% c(2014:2016) ~ "MHW",
+    period = case_when(year %in% c(2015:2016) ~ "MHW",
                        year %in% c(2020:2022) ~ "C19",
                        T ~ "Baseline")) %>%
   group_by(eu_rnpa) %>%
@@ -171,11 +171,11 @@ eus_with_5_baseline <- landings_raw %>%
         !main_species_group %in% spp_remove,
         eu_rnpa %in% eus_only_in,
         eu_rnpa %in% eus_with_10,
-        year <= 2013) %>%
+        year <= 2014) %>%
   group_by(eu_rnpa) %>%
   summarize(n_years = n_distinct(year),
             .groups = "drop") %>%
-  filter(n_years >= 3) %>%
+  filter(n_years >= 5) %>% #<- Check this. Are we keeping things with at lest 3 years of baseline or 5 years? WHat does our text say?
   pull(eu_rnpa) %>%
   unique()
 
@@ -195,7 +195,7 @@ yr_eu_spp <- landings_raw %>%
            "0203008990", "0203013891", "0203014717", "0311001200", "0311001648", "0203009949", "0203126933",
            "0301000089", "0304001068", "0203007836", "0203008107", "0311000541", "0311001366", "0311001549",
            "0203014519", "0303000673", "0308000231", "0308000249", "0308000447", "0311001077", "0311001390",
-           "0203001391", "0203010954", "0203011887", "0203127105", "0311001218", "0313000077"
+           "0203001391", "0203010954", "0203011887", "0203127105", "0311001218", "0313000077", "0203009147"
          )
   ) %>%
   mutate(taxa = case_when(
@@ -262,6 +262,11 @@ yr_eu <- yr_eu_spp %>%
   mutate(
     std_rev = (revenue - mean(revenue[period == "Baseline"], na.rm = T)) / sd(revenue[period == "Baseline"], na.rm = T),
     std_land = (landings - mean(landings[period == "Baseline"], na.rm = T)) / sd(landings[period == "Baseline"], na.rm = T)) %>%
+  ungroup() |>
+  group_by(eu_rnpa) |>
+  mutate(n_g = n_distinct(period)) |>
+  ungroup() |>
+  filter(n_g == 3) |>
   ungroup()
 
 # Run two steps above without filters, get variable ones, remove, and re-run.
