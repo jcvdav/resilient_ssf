@@ -34,6 +34,10 @@ shock <- readRDS(file = here("data", "output", "shock_estimates.rds")) %>%
 
 models <- feols(c(-1*MHW, -1*C19, cv_land) ~  taxa_simpson + pct_export | fishing_entity,
                 data = shock)
+
+## EXPORT ######################################################################
+
+# X ----------------------------------------------------------------------------
 models %>%
   set_names(nm = c("MHW", "C19", "CV")) %>%
   modelsummary(coef_map = c("taxa_simpson" = "Catch diversity",
@@ -50,103 +54,3 @@ models %>%
                Column 3 shows results for the effect of both drivers on stability the coefficient of variation.
                All specifications include fixed-effects by type of economic unit.",
                escape = F)
-
-
-## VISUALIZE ###################################################################
-
-# X ----------------------------------------------------------------------------
-taxa_vs_MHW <- shock %>%
-  ggplot(mapping = aes(x = taxa_simpson, y = MHW)) +
-  annotate(geom = "text",
-           x = -0.175,
-           y = -0.05,
-           size = 2,
-           angle = 90,
-           label = "Less impacted") +
-  annotate(geom = "text",
-           x = -0.175,
-           y = -0.3,
-           size = 2,
-           angle = 90,
-           label = "More impacted") +
-  geom_smooth(method = "lm")+
-  coord_cartesian(xlim = c(0, 1),
-                  clip = "off") +
-  labs(x = "Catch diversity (D)",
-       y = expression(hat(mu)[1]))
-
-taxa_vs_cv <- shock %>%
-  ggplot(mapping = aes(x = taxa_simpson, y = cv_land)) +
-  annotate(geom = "text",
-           x = -0.175,
-           y = 0.875,
-           size = 2,
-           angle = 90,
-           label = "Less stable") +
-  annotate(geom = "text",
-           x = -0.175,
-           y = 0.55,
-           size = 2,
-           angle = 90,
-           label = "More stable") +
-  annotate(geom = "text",
-           x = 0.05,
-           y = 0.425,
-           size = 2,
-           label = "Less Diverse") +
-  annotate(geom = "text",
-           x = 0.95,
-           y = 0.425,
-           size = 2,
-           label = "More Diverse") +
-  coord_cartesian(xlim = c(0, 1),
-                  ylim = c(0.5, 0.95),
-                  clip = "off") +
-  geom_smooth(method = "lm")+
-  labs(x = "Catch diversity (D)",
-       y = "CV")
-
-mkt_vs_C19 <- shock %>%
-  ggplot(mapping = aes(x = pct_export, y = C19)) +
-  geom_smooth(method = "lm") +
-  coord_cartesian(clip = "off") +
-  labs(x = "% Revenue from exports",
-       y = expression(hat(mu)[2]))
-
-mkt_vs_cv <- shock %>%
-  ggplot(mapping = aes(x = pct_export, y = cv_land)) +
-  geom_smooth(method = "lm") +
-  annotate(geom = "text",
-           x = 0.05,
-           y = 0.425,
-           size = 2,
-           label = "Less reliant") +
-  annotate(geom = "text",
-           x = 0.95,
-           y = 0.425,
-           size = 2,
-           label = "More reliant") +
-  coord_cartesian(xlim = c(0, 1),
-                  ylim = c(0.5, 0.95),
-                  clip = "off") +
-  labs(x = "% Revenue from exports",
-       y = "CV")
-
-p2 <- plot_grid(
-  taxa_vs_MHW,
-  mkt_vs_C19,
-  taxa_vs_cv,
-  mkt_vs_cv,
-  ncol = 2,
-  labels = c("AUTO"))
-
-p2
-
-
-startR::lazy_ggsave(plot = p2,
-                    filename = "figure5_diversity_vs_cv",
-                    width = 12 ,
-                    height = 12)
-## EXPORT ######################################################################
-
-# X ----------------------------------------------------------------------------

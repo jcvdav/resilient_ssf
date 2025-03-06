@@ -274,7 +274,7 @@ yr_eu %>% filter(abs(std_rev) >= 5 | abs(std_land) >= 5) %>% pull(eu_rnpa) %>% u
 
 # EU charcteristics ------------------------------------------------------------
 taxa_simpson <- yr_eu_spp %>%
-  filter(year <= 2013) %>%
+  filter(year <= 2014) %>%
   group_by(eu_rnpa, taxa) %>%
   summarize(revenue = sum(revenue),
             .groups = "drop") %>%
@@ -283,7 +283,7 @@ taxa_simpson <- yr_eu_spp %>%
             .groups = "drop")
 
 market_simpson <- yr_eu_spp %>%
-  filter(year <= 2013) %>%
+  filter(year <= 2014) %>%
   group_by(eu_rnpa, market) %>%
   summarize(revenue = sum(revenue),
             .groups = "drop") %>%
@@ -292,7 +292,7 @@ market_simpson <- yr_eu_spp %>%
             .groups = "drop")
 
 pct_export <- yr_eu_spp %>%
-  filter(year <= 2013) %>%
+  filter(year <= 2014) %>%
   group_by(eu_rnpa, market) %>%
   summarize(revenue = sum(revenue),
             .groups = "drop") %>%
@@ -303,7 +303,7 @@ pct_export <- yr_eu_spp %>%
   select(eu_rnpa, pct_export)
 
 richness <- yr_eu_spp %>%
-  filter(year <= 2013) %>%
+  filter(year <= 2014) %>%
   group_by(eu_rnpa) %>%
   summarize(n_spp = n_distinct(taxa),
             .groups = "drop")
