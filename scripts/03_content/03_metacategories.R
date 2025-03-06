@@ -85,12 +85,16 @@ isa_combined |>
   mutate(value = ifelse(!is.na(value), paste0(round(value * 100, 2), "%"), "-")) |>
   pivot_wider(names_from = coop, values_from = value) |>
   rename(Problem = problem) |>
-  kableExtra::kbl(caption = "")
+  kableExtra::kbl(format = "latex",
+                  label = "metacat",
+                  booktabs = T,
+                  caption = "Fraction of responses mentioning each type of problem (rows) by cooperative (columns). Responses come from n=250 individual workshop participants.") |>
+  kableExtra::save_kable(file = here("results", "tab", "metacategories_table.tex"))
 
 ## EXPORT ######################################################################
 
 # X ----------------------------------------------------------------------------
 startR::lazy_ggsave(plot = p1,
-                    filename = "figure4_metacategories",
+                    filename = "figure3_metacategories",
                     width = 16,
                     height = 5.5)

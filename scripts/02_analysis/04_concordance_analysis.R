@@ -47,9 +47,19 @@ shock <- coefs %>%
 points_pct <- shock %>%
   group_by(group) %>%
   summarize(n = n(),
-            MHW = 2.1 * mean(MHW),
-            C19 = 2.1 * mean(C19)) %>%
+            MHW = 2.2 * mean(MHW),
+            C19 = 2.2 * mean(C19)) %>%
   mutate(pct = paste0(round((n / sum(n)) * 100, 1), "%"))
+
+nobs <- length(unique(shock$eu_rnpa))
+# Percent negatively impacted by MHW
+shock |>
+  count(mhw_sign) |>
+  mutate(pct = (n / nobs) * 100)
+# Percent negatively impacted by C19
+shock |>
+  count(c19_sign) |>
+  mutate(pct = (n / nobs) * 100)
 
 ## VISUALIZE ###################################################################
 
@@ -79,7 +89,8 @@ p1 <- base_plot +
   geom_point(aes(fill = taxa_bin,
                  size = mkt_bin)) +
   geom_text(data = points_pct,
-            aes(label = pct)) +
+            aes(x = MHW, y = C19, label = pct),
+                inherit.aes = FALSE) +
   labs(x = expression("Economic unit's response to MHW shock ("~hat(gamma)[1]~")"),
        y = expression("Economic unit's response to C19 shock ("~hat(gamma)[2]~")"),
        fill = "Catch diversity",
@@ -97,7 +108,7 @@ p1 <- base_plot +
 p <- ggMarginal(p1, type = "densigram")
 
 startR::lazy_ggsave(plot = p,
-                    filename = "figure3_concordance_of_shocks",
+                    filename = "figure4_concordance_of_shocks",
                     width = 12,
                     height = 9)
 

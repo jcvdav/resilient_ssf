@@ -17,7 +17,8 @@ pacman::p_load(
   here,
   lme4,
   modelsummary,
-  tidyverse
+  tidyverse,
+  GGally
 )
 
 # Lod main model ---------------------------------------------------------------
@@ -118,11 +119,16 @@ HMC_model <- lmer(std_rev ~ 0 + HMC + MHW + C19 + (0 + HMC | eu_rnpa) + (0 + MHW
 
 # X ----------------------------------------------------------------------------
 list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
-  set_names(c("Main model", "Free intercept", "MHW (2014-2016)", "C19 (2020-2021)", "MHW (2014-2016) & C19 (2020-2021)", "Post '04 data", "HMC '08")) %>%
+  set_names(c("Main model", "Free intercept", "MHW (2014-2016)", "C19 (2020-2021)", "MHW (2014-2016) \\& C19 (2020-2021)", "Post '04 data", "HMC '08")) %>%
   modelsummary(gof_omit = c("IC|Adj|Std|FE|MSE"), coef_omit = "(Intercept)|HMC",
                output = here("results", "tab", "tabS2_robustness_checks.tex"),
                threeparttable = T,
                stars = panelsummary:::econ_stars(),
+               coef_rename = c("MHW" = "\\mu_{\\gamma_{1i}}",
+                               "C19" = "\\mu_{\\gamma_{2i}}",
+                               "SD (MHW eu_rnpa)" = "\\sigma_{\\gamma_{1i}}",
+                               "SD (C19 eu_rnpa)" = "\\sigma_{\\gamma_{2i}}",
+                               "SD (Observations)" = "\\sigma"),
                escape = F,
                title = "\\label{tab:robustness}Table S2 - Main effects of Marine Heatwaves (MHW) and COVID-19 (C19) disruptions on normalized landings by 245 economic units. Numbers in parentheses are standard errors.
                The first column shows the main-text estimates, for reference. The second column uses the same variable deffinitions but allows for a free-varying y-intercept.
@@ -132,18 +138,24 @@ list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, pos
                Column 6 excludes years 2001-2003, a period of time associated with the dot-com crash and economic uncertainty.")
 
 
-list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
+update_geom_defaults(geom = "point", new = list(shape = "."))
+
+p1 <- list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
   map_dfr(~as_tibble(coef(.x)$eu_rnpa, rownames = "eu_rnpa"), .id = "source") %>%
   select(1:3) %>%
   pivot_wider(names_from = source, values_from = MHW)%>%
   select(-eu_rnpa) %>%
-  plot(main = "Pairwise comparisons of eu-fixed effects for MHW under different speciications")
+  ggpairs()
 
 
-list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
+p2 <- list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
   map_dfr(~as_tibble(coef(.x)$eu_rnpa, rownames = "eu_rnpa"), .id = "source") %>%
   select(1:4) %>%
   select(-3) %>%
   pivot_wider(names_from = source, values_from = C19)%>%
   select(-eu_rnpa) %>%
-  plot(main = "Pairwise comparisons of eu-fixed effects for C19 under different speciications")
+  ggpairs()
+
+startR::lazy_ggsave(plot = p1, filename = "s1", width = 12, height = 12)
+startR::lazy_ggsave(plot = p2, filename = "s2", width = 12, height = 12)
+

@@ -42,7 +42,7 @@ tab <- tribble(~"Reported", ~"Category assigned",
                "CORVINA","Sciaenidae",
                "ERIZO","Echinoida",
                "GUACHINANGO","Lutjanidae",
-               "JAIBA","Callinected",
+               "JAIBA","Callinectes",
                "JUREL","Carangidae",
                "LANGOSTA","Palinuridae",
                "LEBRANCHA","Mugilidae",
@@ -69,11 +69,15 @@ tab <- tribble(~"Reported", ~"Category assigned",
 
 
 
-kbl(tab,#format = "latex",
-      linesep = "",
-      booktabs = T) %>%
+kbl(tab,
+    format = "latex",
+    caption = "List of reported and assigned categories by taxa.",
+    label = "taxa_table",
+    linesep = "",
+    booktabs = T) %>%
   kable_styling() %>%
-  collapse_rows(columns = 2)
+  # collapse_rows(columns = 2) |>
+  save_kable(here("results", "tab", "taxa_table.tex"))
 
 
 ## EXPORT ######################################################################
