@@ -50,7 +50,11 @@ base_plot <- ggplot(data = shock,
   geom_vline(xintercept = 0) +
   geom_hline(yintercept = 0) +
   scale_fill_viridis_d() +
-  scale_size_manual(values = c(0.5, 1, 1.5))
+  scale_size_manual(values = c(0.5, 1, 1.5)) +
+  labs(x = expression("Economic unit's impact during MHW shock"),
+       y = expression("Economic unit's impact during C19 shock"),
+       fill = "Catch diversity",
+       size = "% Export")
 
 p2 <- base_plot +
   geom_density2d(color = "black",
@@ -59,7 +63,6 @@ p2 <- base_plot +
   geom_point(aes(fill = taxa_bin,
                  size = mkt_bin)) +
   theme(legend.position = "None",
-        axis.title = element_blank(),
         panel.spacing = unit(0, "mm")) +
   facet_wrap(~taxa_bin, ncol = 1, as.table = F)
 
@@ -71,10 +74,14 @@ p3 <- base_plot +
                  size = mkt_bin)) +
   scale_color_binned(type = "viridis") +
   theme(legend.position = "None",
-        axis.title = element_blank(),
         panel.spacing = unit(0, "mm")) +
   facet_wrap(~mkt_bin, ncol = 1,
              as.table = F)
+
+legend <- get_plot_component(plot = p2 +
+                               theme(legend.position = "bottom",
+                                     legend.title.position = "top"),
+                             pattern = "guide-box-bottom")
 
 p <- plot_grid(
   p2, p3,
@@ -83,10 +90,12 @@ p <- plot_grid(
   axis = "b",
   labels = "AUTO")
 
+pp <- plot_grid(p, legend, ncol = 1, rel_heights = c(1, 0.2))
+
 ## EXPORT ######################################################################
 
 # X ----------------------------------------------------------------------------
-startR::lazy_ggsave(plot = p,
+startR::lazy_ggsave(plot = pp,
                     filename = "figure5_concordance_vs_diversity",
-                    width = 9,
+                    width = 11,
                     height = 10)

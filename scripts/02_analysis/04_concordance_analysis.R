@@ -91,8 +91,8 @@ p1 <- base_plot +
   geom_text(data = points_pct,
             aes(x = MHW, y = C19, label = pct),
                 inherit.aes = FALSE) +
-  labs(x = expression("Economic unit's response to MHW shock ("~hat(gamma)[1]~")"),
-       y = expression("Economic unit's response to C19 shock ("~hat(gamma)[2]~")"),
+  labs(x = expression("Economic unit's impact during MHW shock"),
+       y = expression("Economic unit's impact during C19 shock"),
        fill = "Catch diversity",
        size = "% Export") +
   theme(legend.position = "left") +
