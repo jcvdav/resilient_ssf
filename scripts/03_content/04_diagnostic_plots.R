@@ -34,30 +34,37 @@ model <- readRDS(file = here("data", "output", "mixed_effects_model.rds"))
 
 # X ----------------------------------------------------------------------------
 predicted <- yr_eu |>
-  select(std_rev, MHW, C19, eu_rnpa) %>%
+  select(std_rev, period, MHW, C19, eu_rnpa) %>%
   mutate(predicted_std_rev = predict(model, newdata = .),
-         residuals = std_rev - predicted_std_rev)
+         residuals = std_rev - predicted_std_rev,
+         period = fct_relevel(period, c("MHW", "C19", "Baseline")))
 
 ## VISUALIZE ###################################################################
 
 # X ----------------------------------------------------------------------------
 p1 <- ggplot(data = predicted,
-       aes(x = predicted_std_rev, y = std_rev)) +
-  geom_point(alpha = 0.5, fill = "black", size = 1) +
+       aes(x = predicted_std_rev, y = std_rev, fill = period)) +
+  geom_point(alpha = 0.5, size = 1) +
+  scale_fill_brewer(palette = "Set1") +
   labs(x = "Predicted",
-       y = "Observed")
+       y = "Observed",
+       fill = "Period")
 
 p2 <- ggplot(data = predicted,
-       aes(x = predicted_std_rev, y = residuals)) +
-  geom_point(alpha = 0.5, fill = "black", size = 1) +
+       aes(x = predicted_std_rev, y = residuals, fill = period)) +
+  geom_point(alpha = 0.5, size = 1) +
+  scale_fill_brewer(palette = "Set1") +
   labs(x = "Predicted",
-       y = "Residuals")
+       y = "Residuals",
+       fill = "Period")
 
 p3 <- ggplot(data = predicted,
-       aes(x = std_rev, y = residuals)) +
-  geom_point(alpha = 0.5, fill = "black", size = 1) +
+       aes(x = std_rev, y = residuals, fill = period)) +
+  geom_point(alpha = 0.5, size = 1) +
+  scale_fill_brewer(palette = "Set1") +
   labs(x = "Observed",
-       y = "Residuals")
+       y = "Residuals",
+       fill = "Period")
 
 hist <- ggplot(data = predicted,
                aes(x = residuals)) +
