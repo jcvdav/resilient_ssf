@@ -44,24 +44,30 @@ predicted <- yr_eu |>
 # X ----------------------------------------------------------------------------
 p1 <- ggplot(data = predicted,
        aes(x = predicted_std_rev, y = std_rev, fill = period)) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", linewidth = 0.5) +
   geom_point(alpha = 0.5, size = 1) +
   scale_fill_brewer(palette = "Set1") +
+  coord_equal() +
   labs(x = "Predicted",
        y = "Observed",
        fill = "Period")
 
 p2 <- ggplot(data = predicted,
        aes(x = predicted_std_rev, y = residuals, fill = period)) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", linewidth = 0.5) +
   geom_point(alpha = 0.5, size = 1) +
   scale_fill_brewer(palette = "Set1") +
+  coord_equal() +
   labs(x = "Predicted",
        y = "Residuals",
        fill = "Period")
 
 p3 <- ggplot(data = predicted,
        aes(x = std_rev, y = residuals, fill = period)) +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", linewidth = 0.5) +
   geom_point(alpha = 0.5, size = 1) +
   scale_fill_brewer(palette = "Set1") +
+  coord_equal() +
   labs(x = "Observed",
        y = "Residuals",
        fill = "Period")
