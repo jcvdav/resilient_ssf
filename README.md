@@ -10,7 +10,7 @@ use `renv::restore()`. This will use the metadata in our lockfile to install exa
 
 The repository is equipped with a `makefile` outlining the relationship between scripts, inputs, and outputs. To rebuild our project, you can use the `make` command in your termial.
 
-![](worklfow.png)
+![](workflow.png)
 
 ## Repository structure 
 
