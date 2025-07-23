@@ -19,6 +19,8 @@ pacman::p_load(
   tidyverse
 )
 
+source(here("scripts/00_set_up.R"))
+
 # Load data --------------------------------------------------------------------
 shock <- readRDS(file = here("data", "output", "shock_estimates.rds"))
 
