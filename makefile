@@ -1,54 +1,80 @@
+# Shortcuts
+# Content directories
+FIGURES=results/img/
+TABLES=results/tab/
+# Data directories
+OUTPUT=data/output/
+PROCESSED=data/processed/
+# Code directories
+ANALYSIS=scripts/02_analysis/
+CONTENT=scripts/03_content/
+
 all: figures tables
-tables: results/tab/tab1_main_model.png results/img/tab2_drivers.png results/tab/tabS2_robustness_checks.png
-figures: results/img/fig1_map.png results/img/fig2_ts_plot.png results/img/figure3_concordance_of_shocks.png results/img/figure5_concordance_vs_diversity.png
-output: data/output/mixed_effects_model.rds data/output/coefs.rds data/output/period_diffs.rds data/output/shock_estimates.rds
-input_data: data/processed/year_eu_spp.rds data/processed/year_eu.rds data/processed/characteristics.rds
+tables: $(TABLES)tab1_main_model.tex $(TABLES)tab2_drivers.tex $(TABLES)tabS2_robustness_checks.tex
+figures: $(FIGURES)fig1_map.pdf $(FIGURES)fig2_ts_plot.pdf $(FIGURES)figure3_metacategories.pdf $(FIGURES)figure4_concordance_of_shocks.pdf results/img/figure5_concordance_vs_diversity.pdf $(FIGURES)s3.pdf
+input_data: $(PROCESSED)year_eu_spp.rds $(PROCESSED)year_eu.rds $(PROCESSED)characteristics.rds
+dag: workflow.png
 
 # Tables -----------------------------------------------------------------------
-results/tab/tab1_main_model.png: scripts/02_analysis/01_fit_mixed_effects_model.R data/processed/year_eu.rds
+$(TABLES)tab1_main_model.tex: $(ANALYSIS)01_fit_mixed_effects_model.R $(PROCESSED)year_eu.rds
 	cd $(<D);Rscript $(<F)
 
-results/img/tab2_drivers.png: scripts/02_analysis/04_drivers_of_resilience.R data/output/shock_estimates.rds
+$(TABLES)tab2_drivers.tex: $(ANALYSIS)04_drivers_of_resilience.R data/output/shock_estimates.rds
 	cd $(<D);Rscript $(<F)
 
-results/tab/tabS2_robustness_checks.png: scripts/02_analysis/01b_robustness.R data/processed/year_eu.rds data/output/mixed_effects_model.rds
+$(TABLES)tabS2_robustness_checks.tex: $(ANALYSIS)01b_robustness.R $(PROCESSED)year_eu.rds $(OUTPUT)mixed_effects_model.rds
 	cd $(<D);Rscript $(<F)
 
 # Figures ----------------------------------------------------------------------
-results/img/fig1_map.png: scripts/03_content/01_map.R
+$(FIGURES)fig1_map.pdf: $(CONTENT)/01_map.R
 	cd $(<D);Rscript $(<F)
 
-results/img/fig2_ts_plot.png: scripts/02_analysis/02_differences_by_period.R data/output/mixed_effects_model.rds data/processed/year_eu.rds
+$(FIGURES)fig2_ts_plot.pdf: $(ANALYSIS)02_differences_by_period.R $(OUTPUT)mixed_effects_model.rds $(PROCESSED)year_eu.rds
 	cd $(<D);Rscript $(<F)
 
-results/img/figure3_concordance_of_shocks.png: scripts/02_analysis/03_concordance_analysis.R data/output/coefs.rds data/processed/characteristics.rds data/output/period_diffs.rds
+$(FIGURES)figure3_metacategories.pdf: $(CONTENT)/03_metacategories.R data/raw/Histograma_de_metacategorias.xlsx
 	cd $(<D);Rscript $(<F)
 
-results/img/figure4_metacategories.png: scripts/03_content/03_metacategories.R data/raw/Histograma de metacategorías.xlsx
+$(FIGURES)figure4_concordance_of_shocks.pdf: $(ANALYSIS)03_concordance_analysis.R $(OUTPUT)coefs.rds $(PROCESSED)characteristics.rds $(OUTPUT)period_diffs.rds
 	cd $(<D);Rscript $(<F)
 
-results/img/figure5_concordance_vs_diversity.png: scripts/02_analysis/05_concordance_vs_diversity.R data/output/shock_estimates.rds
+$(FIGURES)figure5_concordance_vs_diversity.pdf: $(ANALYSIS)05_concordance_vs_diversity.R $(OUTPUT)shock_estimates.rds
+	cd $(<D);Rscript $(<F)
+
+
+# Supplementary figures
+$(FIGURES)s1.pdf: $(ANALYSIS)01b_robustness.R $(PROCESSED)year_eu.rds $(OUTPUT)mixed_effects_model.rds
+	cd $(<D);Rscript $(<F)
+
+$(FIGURES)s2.pdf: $(ANALYSIS)01b_robustness.R $(PROCESSED)year_eu.rds $(OUTPUT)mixed_effects_model.rds
+	cd $(<D);Rscript $(<F)
+
+$(FIGURES)s3.pdf: $(CONTENT)/04_diagnostic_plots.R $(OUTPUT)mixed_effects_model.rds $(PROCESSED)year_eu.rds
 	cd $(<D);Rscript $(<F)
 
 # Output data ------------------------------------------------------------------
-data/output/mixed_effects_model.rds: scripts/02_analysis/01_fit_mixed_effects_model.R data/processed/year_eu.rds
+$(OUTPUT)mixed_effects_model.rds: $(ANALYSIS)01_fit_mixed_effects_model.R $(PROCESSED)year_eu.rds
 	cd $(<D);Rscript $(<F)
 
-data/output/coefs.rds: scripts/02_analysis/01_fit_mixed_effects_model.R data/processed/year_eu.rds
+$(OUTPUT)coefs.rds: $(ANALYSIS)01_fit_mixed_effects_model.R $(PROCESSED)year_eu.rds
 	cd $(<D);Rscript $(<F)
 
-data/output/period_diffs.rds: scripts/02_analysis/02_differences_by_period.R data/output/mixed_effects_model.rds data/processed/year_eu.rds
+$(OUTPUT)period_diffs.rds: $(ANALYSIS)02_differences_by_period.R $(OUTPUT)mixed_effects_model.rds $(PROCESSED)year_eu.rds
 	cd $(<D);Rscript $(<F)
 
-data/output/shock_estimates.rds: scripts/02_analysis/03_concordance_analysis.R data/output/coefs.rds data/processed/characteristics.rds data/output/period_diffs.rds
+$(OUTPUT)shock_estimates.rds: $(ANALYSIS)03_concordance_analysis.R $(OUTPUT)coefs.rds $(PROCESSED)characteristics.rds $(OUTPUT)period_diffs.rds
 	cd $(<D);Rscript $(<F)
 
-# Inptue data ------------------------------------------------------------------
-data/processed/year_eu_spp.rds: scripts/01_build_data/01_build_data.R
+# Input data -------------------------------------------------------------------
+$(PROCESSED)year_eu_spp.rds: scripts/01_build_data/01_build_data.R
 	cd $(<D);Rscript $(<F)
 
-data/processed/year_eu.rds: scripts/01_build_data/01_build_data.R
+$(PROCESSED)year_eu.rds: scripts/01_build_data/01_build_data.R
 	cd $(<D);Rscript $(<F)
 
-data/processed/characteristics.rds: scripts/01_build_data/01_build_data.R
+$(PROCESSED)characteristics.rds: scripts/01_build_data/01_build_data.R
 	cd $(<D);Rscript $(<F)
+
+# DAG
+workflow.png: Makefile
+		LANG=C make -pBnd | python3 make_p_to_json.py | python3 json_to_dot.py | dot -Tpng -Gdpi=300 -o workflow.png
