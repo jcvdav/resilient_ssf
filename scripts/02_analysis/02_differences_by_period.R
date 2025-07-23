@@ -51,8 +51,6 @@ period_plot <- ggplot(data = period_diffs,
        y = expression("Estimate ("~hat(mu)[1]~"or"~hat(mu)[2]~")")) +
   theme(legend.position = "None")
 
-period_plot
-
 # X ----------------------------------------------------------------------------
 ts_plot <- ggplot(data = yr_eu,
                   aes(x = year, y = std_rev)) +
