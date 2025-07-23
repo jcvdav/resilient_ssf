@@ -21,7 +21,7 @@ pacman::p_load(
 
 # Load data --------------------------------------------------------------------
 
-nemer <- read_xlsx(path = here("data/raw/Histograma de metacategorías.xlsx"),
+nemer <- read_xlsx(path = here("data/raw/Histograma_de_metacategorias.xlsx"),
                    sheet = 2) %>%
   mutate(Metacategoria = str_replace(Metacategoria, pattern = "/", replacement = "/\n"),
          Metacategoria = fct_reorder(Metacategoria, N, max),
