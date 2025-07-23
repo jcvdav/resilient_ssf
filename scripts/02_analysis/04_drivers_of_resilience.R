@@ -48,7 +48,7 @@ models %>%
                gof_omit = c("IC|Adj|Std|FE|MSE"),
                stars = panelsummary:::econ_stars(),
                output = here("results", "tab", "tab2_drivers.tex"),
-               title = "\\label{tab:drivers}Table 2 - Regression results for drivers of shock and stability in the face of Marine heatwaves (MHW) and COVID-19 disruptions for 245 economic units in the Baja California Peninsula.
+               title = "\\label{tab:drivers}Table 2 - Regression results for drivers of shock and stability in the face of Marine heatwaves (MHW) and COVID-19 disruptions for 237 economic units in the Baja California Peninsula.
                Column 1 shows results for the effect of catch diversity on revenue losses during the MHW,
                column 2 shows the effect of reliance on export markets on COVID-19 disruptions.
                Column 3 shows results for the effect of both drivers on stability the coefficient of variation.
