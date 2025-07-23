@@ -21,6 +21,8 @@ pacman::p_load(
   GGally
 )
 
+source(here("scripts/00_set_up.R"))
+
 # Lod main model ---------------------------------------------------------------
 model <- readRDS(here("data", "output", "mixed_effects_model.rds"))
 
@@ -28,12 +30,7 @@ model <- readRDS(here("data", "output", "mixed_effects_model.rds"))
 yr_eu <- readRDS(here("data/processed/year_eu.rds")) %>%
   mutate(baseline = 1 * (period == "Baseline"),
          MHW = 1 * (period == "MHW"),
-         C19 = 1 * (period == "C19"))|>
-  group_by(eu_rnpa) |>
-  mutate(n_g = n_distinct(period)) |>
-  ungroup() |>
-  filter(n_g == 3) |>
-  ungroup()
+         C19 = 1 * (period == "C19"))
 
 alt_mhw <- yr_eu %>%
   ungroup() %>%
@@ -100,19 +97,19 @@ HMC <- yr_eu %>%
          C19 = 1 * (period == "C19"))
 
 ## PROCESSING ##################################################################
-free_intercept <- lmer(std_rev ~ MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
+free_intercept <- lmer(std_rev ~ MHW + C19 + (0 + MHW + C19 | eu_rnpa),
                 data = yr_eu)
 
-alt_mhw_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
+alt_mhw_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW + C19 | eu_rnpa),
                       data = alt_mhw)
-alt_c19_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
+alt_c19_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW + C19 | eu_rnpa),
                       data = alt_c19)
-alt_mhw_c19_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
+alt_mhw_c19_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW + C19 | eu_rnpa),
                           data = alt_mhw_c19)
 
-post_04_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
+post_04_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW + C19 | eu_rnpa),
                           data = post_04)
-HMC_model <- lmer(std_rev ~ 0 + HMC + MHW + C19 + (0 + HMC | eu_rnpa) + (0 + MHW | eu_rnpa) + (0 + C19 | eu_rnpa),
+HMC_model <- lmer(std_rev ~ 0 + HMC + MHW + C19 + (0 + HMC + MHW + C19 | eu_rnpa),
                   data = HMC)
 
 ## EXPORT ######################################################################
@@ -128,7 +125,8 @@ list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, pos
                                "C19" = "\\mu_{\\gamma_{2i}}",
                                "SD (MHW eu_rnpa)" = "\\sigma_{\\gamma_{1i}}",
                                "SD (C19 eu_rnpa)" = "\\sigma_{\\gamma_{2i}}",
-                               "SD (Observations)" = "\\sigma"),
+                               "SD (Observations)" = "\\sigma",
+                               "Cor (MHW~C19 eu_rnpa)" = "\\rho"),
                escape = F,
                title = "\\label{tab:robustness}Table S2 - Main effects of Marine Heatwaves (MHW) and COVID-19 (C19) disruptions on normalized landings by 245 economic units. Numbers in parentheses are standard errors.
                The first column shows the main-text estimates, for reference. The second column uses the same variable deffinitions but allows for a free-varying y-intercept.
@@ -156,6 +154,6 @@ p2 <- list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_mode
   select(-eu_rnpa) %>%
   ggpairs()
 
-startR::lazy_ggsave(plot = p1, filename = "s1", width = 12, height = 12)
-startR::lazy_ggsave(plot = p2, filename = "s2", width = 12, height = 12)
+startR::lazy_ggsave(plot = p1, filename = "s1", width = 18, height = 12)
+startR::lazy_ggsave(plot = p2, filename = "s2", width = 18, height = 12)
 
