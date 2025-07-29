@@ -97,7 +97,7 @@ HMC <- yr_eu %>%
          C19 = 1 * (period == "C19"))
 
 ## PROCESSING ##################################################################
-free_intercept <- lmer(std_rev ~ MHW + C19 + (0 + MHW + C19 | eu_rnpa),
+free_intercept <- lmer(std_rev ~ 1 + MHW + C19 + (0 + MHW + C19 | eu_rnpa),
                 data = yr_eu)
 
 alt_mhw_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW + C19 | eu_rnpa),
@@ -112,9 +112,28 @@ post_04_model <- lmer(std_rev ~ 0 + MHW + C19 + (0 + MHW + C19 | eu_rnpa),
 HMC_model <- lmer(std_rev ~ 0 + HMC + MHW + C19 + (0 + HMC + MHW + C19 | eu_rnpa),
                   data = HMC)
 
+## VISUALZIE ###################################################################
+update_geom_defaults(geom = "point", new = list(shape = "."))
+
+p1 <- list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
+  map_dfr(~as_tibble(coef(.x)$eu_rnpa, rownames = "eu_rnpa"), .id = "source") %>%
+  select(1:3) %>%
+  pivot_wider(names_from = source, values_from = MHW)%>%
+  select(-eu_rnpa) %>%
+  ggpairs(title = "MHW")
+
+
+p2 <- list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
+  map_dfr(~as_tibble(coef(.x)$eu_rnpa, rownames = "eu_rnpa"), .id = "source") %>%
+  select(1:4) %>%
+  select(-3) %>%
+  pivot_wider(names_from = source, values_from = C19) %>%
+  select(-eu_rnpa) %>%
+  ggpairs(title = "C19")
+
 ## EXPORT ######################################################################
 
-# X ----------------------------------------------------------------------------
+# Export table -----------------------------------------------------------------
 list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
   set_names(c("Main model", "Free intercept", "MHW (2014-2016)", "C19 (2020-2021)", "MHW (2014-2016) \\& C19 (2020-2021)", "Post '04 data", "HMC '08")) %>%
   modelsummary(gof_omit = c("IC|Adj|Std|FE|MSE"), coef_omit = "(Intercept)|HMC",
@@ -135,25 +154,11 @@ list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, pos
                Column 5 combines the marine heatwave and COVID-19 period deffinitions in columns three and four.
                Column 6 excludes years 2001-2003, a period of time associated with the dot-com crash and economic uncertainty.")
 
-
-update_geom_defaults(geom = "point", new = list(shape = "."))
-
-p1 <- list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
-  map_dfr(~as_tibble(coef(.x)$eu_rnpa, rownames = "eu_rnpa"), .id = "source") %>%
-  select(1:3) %>%
-  pivot_wider(names_from = source, values_from = MHW)%>%
-  select(-eu_rnpa) %>%
-  ggpairs()
-
-
-p2 <- list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
-  map_dfr(~as_tibble(coef(.x)$eu_rnpa, rownames = "eu_rnpa"), .id = "source") %>%
-  select(1:4) %>%
-  select(-3) %>%
-  pivot_wider(names_from = source, values_from = C19)%>%
-  select(-eu_rnpa) %>%
-  ggpairs()
-
+# Export figures ---------------------------------------------------------------
 startR::lazy_ggsave(plot = p1, filename = "s1", width = 18, height = 12)
 startR::lazy_ggsave(plot = p2, filename = "s2", width = 18, height = 12)
+
+# Export model -----------------------------------------------------------------
+saveRDS(object = free_intercept,
+        file = here("data/output/mixed_effects_model_with_random_intercept.rds"))
 
