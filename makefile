@@ -11,7 +11,7 @@ CONTENT=scripts/03_content/
 
 all: figures tables
 tables: $(TABLES)tab1_main_model.tex $(TABLES)tab2_drivers.tex $(TABLES)tabS2_robustness_checks.tex
-figures: $(FIGURES)fig1_map.pdf $(FIGURES)fig2_ts_plot.pdf $(FIGURES)figure3_metacategories.pdf $(FIGURES)figure4_concordance_of_shocks.pdf results/img/figure5_concordance_vs_diversity.pdf $(FIGURES)s3.pdf
+figures: $(FIGURES)fig1_map.pdf $(FIGURES)fig2_ts_plot.pdf $(FIGURES)figure3_metacategories.pdf $(FIGURES)figure4_concordance_of_shocks.pdf results/img/figure5_concordance_vs_diversity.pdf $(FIGURES)s3.pdf $(FIGURES)s4.pdf
 input_data: $(PROCESSED)year_eu_spp.rds $(PROCESSED)year_eu.rds $(PROCESSED)characteristics.rds
 dag: workflow.png
 
@@ -50,6 +50,9 @@ $(FIGURES)s2.pdf: $(ANALYSIS)01b_robustness.R $(PROCESSED)year_eu.rds $(OUTPUT)m
 	cd $(<D);Rscript $(<F)
 
 $(FIGURES)s3.pdf: $(CONTENT)/04_diagnostic_plots.R $(OUTPUT)mixed_effects_model.rds $(PROCESSED)year_eu.rds
+	cd $(<D);Rscript $(<F)
+
+$(FIGURES)s4.pdf: $(CONTENT)/04_diagnostic_plots.R $(OUTPUT)mixed_effects_model_with_random_intecrept.rds $(PROCESSED)year_eu.rds
 	cd $(<D);Rscript $(<F)
 
 # Output data ------------------------------------------------------------------
