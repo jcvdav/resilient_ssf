@@ -25,6 +25,9 @@ $(TABLES)tab2_drivers.tex: $(ANALYSIS)04_drivers_of_resilience.R data/output/sho
 $(TABLES)tabS2_robustness_checks.tex: $(ANALYSIS)01b_robustness.R $(PROCESSED)year_eu.rds $(OUTPUT)mixed_effects_model.rds
 	cd $(<D);Rscript $(<F)
 
+$(TABLES)taxa_table.tex: $(CONTENT)02_taxa_tabvle.R
+	cd $(<D);Rscript $(<F)
+
 # Figures ----------------------------------------------------------------------
 $(FIGURES)fig1_map.pdf: $(CONTENT)/01_map.R
 	cd $(<D);Rscript $(<F)
@@ -52,11 +55,14 @@ $(FIGURES)s2.pdf: $(ANALYSIS)01b_robustness.R $(PROCESSED)year_eu.rds $(OUTPUT)m
 $(FIGURES)s3.pdf: $(CONTENT)/04_diagnostic_plots.R $(OUTPUT)mixed_effects_model.rds $(PROCESSED)year_eu.rds
 	cd $(<D);Rscript $(<F)
 
-$(FIGURES)s4.pdf: $(CONTENT)/04_diagnostic_plots.R $(OUTPUT)mixed_effects_model_with_random_intecrept.rds $(PROCESSED)year_eu.rds
+$(FIGURES)s4.pdf: $(CONTENT)/04_diagnostic_plots.R $(OUTPUT)mixed_effects_model_with_random_intercept.rds $(PROCESSED)year_eu.rds
 	cd $(<D);Rscript $(<F)
 
 # Output data ------------------------------------------------------------------
 $(OUTPUT)mixed_effects_model.rds: $(ANALYSIS)01_fit_mixed_effects_model.R $(PROCESSED)year_eu.rds
+	cd $(<D);Rscript $(<F)
+
+$(OUTPUT)mixed_effects_model_with_random_intercept.rds: $(ANALYSIS)01b_robustness.R $(PROCESSED)year_eu.rds
 	cd $(<D);Rscript $(<F)
 
 $(OUTPUT)coefs.rds: $(ANALYSIS)01_fit_mixed_effects_model.R $(PROCESSED)year_eu.rds
