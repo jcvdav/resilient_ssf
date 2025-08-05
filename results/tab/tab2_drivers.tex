@@ -10,19 +10,19 @@ note{}={* p \num{< 0.1}, ** p \num{< 0.05}, *** p \num{< 0.01}},
 ]                     %% tabularray outer close
 {                     %% tabularray inner open
 colspec={Q[]Q[]Q[]Q[]},
-column{2,3,4}={}{halign=c,},
+column{2-4}={}{halign=c,},
 column{1}={}{halign=l,},
-hline{6}={1,2,3,4}{solid, black, 0.05em},
+hline{6}={1-4}{solid, black, 0.05em},
 }                     %% tabularray inner close
 \toprule
 & MHW & C19 & CV \\ \midrule %% TinyTableHeader
-Catch diversity & \num{-0.204}** & \num{-0.256}  & \num{-0.191}   \\
-& (\num{0.023})  & (\num{0.096}) & (\num{0.114})  \\
-\% Export      & \num{-0.072}   & \num{-0.143}  & \num{-0.214}** \\
-& (\num{0.102})  & (\num{0.278}) & (\num{0.031})  \\
-Num.Obs.        & \num{237}      & \num{237}     & \num{237}      \\
-R2              & \num{0.047}    & \num{0.012}   & \num{0.089}    \\
-R2 Within       & \num{0.039}    & \num{0.009}   & \num{0.078}    \\
+Catch diversity & \num{-0.206}** & \num{-0.273}* & \num{-0.115} \\
+& (\num{0.037}) & (\num{0.093}) & (\num{0.126}) \\
+\% Export & \num{-0.088} & \num{-0.171} & \num{-0.331}** \\
+& (\num{0.105}) & (\num{0.287}) & (\num{0.058}) \\
+Num.Obs. & \num{237} & \num{237} & \num{237} \\
+R2 & \num{0.046} & \num{0.013} & \num{0.064} \\
+R2 Within & \num{0.037} & \num{0.010} & \num{0.064} \\
 \bottomrule
 \end{talltblr}
 \end{table}

@@ -136,7 +136,7 @@ p2 <- list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_mode
 # Export table -----------------------------------------------------------------
 list(model, free_intercept, alt_mhw_model, alt_c19_model, alt_mhw_c19_model, post_04_model, HMC_model) %>%
   set_names(c("Main model", "Free intercept", "MHW (2014-2016)", "C19 (2020-2021)", "MHW (2014-2016) \\& C19 (2020-2021)", "Post '04 data", "HMC '08")) %>%
-  modelsummary(gof_omit = c("IC|Adj|Std|FE|MSE"), coef_omit = "(Intercept)|HMC",
+  modelsummary(gof_omit = c("IC|Adj|Std|FE|MSE"), coef_omit = "HMC",
                output = here("results", "tab", "tabS2_robustness_checks.tex"),
                threeparttable = T,
                stars = panelsummary:::econ_stars(),

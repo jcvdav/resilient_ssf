@@ -54,8 +54,7 @@ spp_remove <- c("BESUGO",
                 "OSTION",
                 "PECES DE ORNATO",
                 "BARRILETE",
-                "PETO",
-                "CALAMAR")
+                "PETO")
 
 # Species from the list that are often exported (but not only)
 export_spp <- c("CAMARON",
@@ -208,6 +207,7 @@ yr_eu_spp <- landings_raw %>%
     main_species_group == "BERRUGATA" ~ "Sciaenidae",
     main_species_group == "BONITO" ~ "Scombridae",
     main_species_group == "CABRILLA" ~ "Serranidae",
+    main_species_group == "CALAMAR" ~ "Loliginidae",
     main_species_group == "CAMARON" ~ "Shrimp",
     main_species_group == "CARACOL" ~ "Gastropoda",
     main_species_group == "CAZON" ~ "Mustelus",
