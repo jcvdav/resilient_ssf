@@ -88,7 +88,7 @@ isa_combined |>
   kableExtra::kbl(format = "latex",
                   label = "metacat",
                   booktabs = T,
-                  caption = "Fraction of responses mentioning each type of problem (rows) by cooperative (columns). Responses come from n=250 individual workshop participants.") |>
+                  caption = "Fraction of responses mentioning each type of problem (rows) by cooperative (columns). Responses (n=250) come from (n = 196) individual workshop participants.") |>
   kableExtra::save_kable(file = here("results", "tab", "metacategories_table.tex"))
 
 ## EXPORT ######################################################################
